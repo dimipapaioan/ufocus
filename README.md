@@ -4,16 +4,14 @@
   μFocus [<em>microFocus</em>]
 </h1>
 
+<p align="center"><strong>An autofocusing system for the nuclear microprobe at the Tandem Laboratory</strong></p>
 
-# μFocus
-An autofocusing system for the nuclear microprobe at the Tandem Laboratory.
-
-# Run the application
+## Run the application
 ```
 python ufocus/main.py
 ```
 
-# Build
+## Build
 To build from source, run the following:
 
 ```

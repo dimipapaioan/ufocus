@@ -1,0 +1,13 @@
+- module-name: 'pypylon'
+  dlls:
+    - by_code:
+        setup_code: |
+          import importlib.metadata
+          import glob
+          pypylon_dist = importlib.metadata.distribution("pypylon")
+          base_path = pypylon_dist.locate_file(".") / 'pypylon'
+          path = glob.glob(str(base_path) + '/*.dll')
+
+        filename_code: |
+          [f for f in path]
+      dest_path: '.'

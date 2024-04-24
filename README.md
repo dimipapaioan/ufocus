@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://github.com/dimipapaioan/ufocus/blob/main/icons/icon3_256.png" width="150">
+  <img src="icons/icon3_256.png" width="200">
   <br>
   μFocus [<em>microFocus</em>]
 </h1>

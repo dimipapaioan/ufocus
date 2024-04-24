@@ -1,0 +1,136 @@
+# -*- coding: utf-8 -*-
+
+import logging
+import time
+
+from pypylon import pylon
+from pypylon.genicam import GenericException
+import numpy as np
+
+from PySide6.QtCore import (
+    QObject, Signal, Slot, QRunnable
+    )
+from PySide6.QtGui import QImage
+
+
+logger = logging.getLogger(__name__)
+
+class CameraWorkerRSignals(QObject):
+    finished = Signal()
+    fps = Signal(float)
+    error = Signal()
+
+class CameraWorkerR(QRunnable):
+
+    def __init__(self, camera, parent=None):
+        super().__init__(parent)
+        self.parent = parent
+        self.camera = camera
+        self.signals = CameraWorkerRSignals(self.parent)
+        self.handler = CameraImageHandler(self.parent)
+        self.camera.RegisterImageEventHandler(self.handler, pylon.RegistrationMode_ReplaceAll, pylon.Cleanup_Delete)
+        self.printer = ConfigurationEventPrinter()
+        self.camera.RegisterConfiguration(self.printer, pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
+
+        logger.info("Camera worker initialized")
+
+    @Slot()
+    def run(self):
+        try:
+            self.camera.StartGrabbing(pylon.GrabStrategy_OneByOne, pylon.GrabLoop_ProvidedByInstantCamera)
+            logger.info("Camera worker started")
+        except GenericException as e:
+            logger.error(e)
+            self.signals.error.emit()
+        else:
+            while self.camera.IsGrabbing():
+                # print("Grabbing.")
+                self.signals.fps.emit(self.camera.ResultingFrameRate.GetValue())
+                time.sleep(0.33)
+                #print("Gray values of first row: ", self.handler.img[0])
+            # self.camera.Close()
+            # if not self.camera.IsGrabbing():
+            self.camera.DeregisterImageEventHandler(self.handler)
+            self.camera.DeregisterConfiguration(self.printer)
+        finally:
+            logger.info("Camera worker finished")
+            self.signals.finished.emit()
+
+
+class CameraImageHandler(pylon.ImageEventHandler, QObject):
+    progress = Signal(np.ndarray)
+    updateFrame = Signal(QImage)
+    
+    def __init__(self, parent=None):
+        super().__init__()
+        super(pylon.ImageEventHandler, self).__init__(parent)
+        # self.parent = parent
+        # self.camera = camera
+        # self.img = np.zeros((self.camera.Height.Value, self.camera.Width.Value))
+        # self.img = np.zeros((2048, 2448))
+
+    def OnImageGrabbed(self, camera, grab):
+        if grab.GrabSucceeded():
+            self.img = grab.GetArray()
+            self.progress.emit(self.img)
+            if self.img.ndim == 2:
+                h, w = self.img.shape
+                image = QImage(self.img.data, w, h, w, QImage.Format.Format_Grayscale8)
+            elif self.img.ndim == 3:
+                h, w, ch = self.img.shape
+                image = QImage(self.img.data, w, h, ch * w, QImage.Format.Format_RGB888)
+            # self.image = self.image.scaled(320, 240, Qt.KeepAspectRatio)
+            self.updateFrame.emit(image)
+        
+
+    def OnImagesSkipped(self, camera, countOfSkippedImages):
+        logger.warning(f"Camera skipped {countOfSkippedImages} images")
+        
+class ConfigurationEventPrinter(pylon.ConfigurationEventHandler):
+    def OnAttach(self):
+        logger.debug("OnAttach event")
+
+    def OnAttached(self, camera):
+        logger.debug(f"OnAttached event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnOpen(self, camera):
+        logger.debug(f"OnOpen event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnOpened(self, camera):
+        logger.debug(f"OnOpened event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnGrabStart(self, camera):
+        logger.debug(f"OnGrabStart event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnGrabStarted(self, camera):
+        logger.debug(f"OnGrabStarted event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnGrabStop(self, camera):
+        logger.debug(f"OnGrabStop event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnGrabStopped(self, camera):
+        logger.debug(f"OnGrabStopped event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnClose(self, camera):
+        logger.debug(f"OnClose event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnClosed(self, camera):
+        logger.debug(f"OnClosed event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnDestroy(self, camera):
+        logger.debug(f"OnDestroy event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnDestroyed(self, camera):
+        logger.debug(f"OnDestroyed event")
+
+    def OnDetach(self, camera):
+        logger.debug(f"OnDetach event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnDetached(self, camera):
+        logger.debug(f"OnDetached event for device {camera.GetDeviceInfo().GetModelName()}")
+
+    def OnGrabError(self, camera, errorMessage):
+        logger.error(f"OnGrabError event for device {camera.GetDeviceInfo().GetModelName()}: {errorMessage}")
+
+    def OnCameraDeviceRemoved(self, camera):
+        logger.debug(f"OnCameraDeviceRemoved event for device {camera.GetDeviceInfo().GetModelName()}")

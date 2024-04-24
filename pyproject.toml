@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uFocus"
+version = "2.0.0"
+authors = [
+    {name = "Dimitrios Papaioannou", email = "dimipapaioan@outlook.com"},
+]
+description = "uFocus: An autofocusing system for the nuclear microprobe at Uppsala University's Tandem Laboratory"
+dependencies = [
+    "pyside6-essentials == 6.7.0",
+    "pyside6-qtads == 4.2.1.1",
+    "pyqtgraph",
+    "opencv-python-headless",
+    "pypylon",
+    "pyserial",
+    "numpy",
+    "scipy",
+]
+requires-python = ">=3.10"
+license = {text = "MIT License"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.scripts]
+ufocus = "uFocus.main:run_main"

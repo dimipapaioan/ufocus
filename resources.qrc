@@ -1,0 +1,15 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="icons">
+        <file alias="arrow-right-from-bracket-solid.svg">../icons/arrow-right-from-bracket-solid.svg</file>
+        <file alias="arrow-right-to-bracket-solid.svg">../icons/arrow-right-to-bracket-solid.svg</file>
+        <file alias="compress-solid.svg">../icons/compress-solid.svg</file>
+        <file alias="expand-solid.svg">../icons/expand-solid.svg</file>
+        <file alias="floppy-disk-solid.svg">../icons/floppy-disk-solid.svg</file>
+        <file alias="trash-can-solid.svg">../icons/trash-can-solid.svg</file>
+        <file alias="magnifying-glass-plus-solid.svg">../icons/magnifying-glass-plus-solid.svg</file>
+        <file alias="magnifying-glass-minus-solid.svg">../icons/magnifying-glass-minus-solid.svg</file>
+        <file alias="magnifying-glass-solid.svg">../icons/magnifying-glass-solid.svg</file>
+        <file alias="icon3_256.svg">../icons/icon3_256.svg</file>
+    </qresource>
+</RCC>

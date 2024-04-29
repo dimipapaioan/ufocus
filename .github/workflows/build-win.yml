@@ -49,14 +49,14 @@ jobs:
         nuitka-version: main
         script-name: ufocus/main.py
         standalone: true
+        one-file: false
         enable-plugins: pyside6
         user-package-configuration-file: pypylon.yml
         windows-icon-from-ico: icons/icon3_256.png
-        noinclude-qt-translations: true
 
     # Uploads artifact
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: build-${{ matrix.os }}-py-${{ matrix.python-version }}
+        name: ufocus-${{ matrix.os }}-py${{ matrix.python-version }}
         path: build/main.dist/

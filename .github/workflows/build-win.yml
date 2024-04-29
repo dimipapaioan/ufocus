@@ -4,7 +4,7 @@ name: Build Python application in Windows
 
 on:
   # Triggers the workflow either manually, on push or pull request events but only for the "main" branch
-  workflow_dispatch:
+  # workflow_dispatch:
 
   push:
     branches: [ "main" ]

@@ -1,0 +1,62 @@
+# This workflow will install Python dependencies and package the application with Nuitka
+
+name: Build Python application in Windows
+
+on:
+  # Triggers the workflow either manually, on push or pull request events but only for the "main" branch
+  workflow_dispatch:
+
+  push:
+    branches: [ "main" ]
+
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        python-version: ["3.11"]
+    
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    # Checkout repository
+    - uses: actions/checkout@v4
+
+    # Setup Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # Build python script into a stand-alone exe
+    - name: Build standalone with Nuitka
+      uses: Nuitka/Nuitka-Action@main
+      with:
+        nuitka-version: main
+        script-name: ufocus/main.py
+        standalone: true
+        enable-plugins: pyside6
+        user-package-configuration-file: pypylon.yml
+        windows-icon-from-ico: icons/icon3_256.png
+        noinclude-qt-translations: true
+
+    # Uploads artifact
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-py-${{ matrix.python-version }}
+        path: build/main.dist/

@@ -49,10 +49,11 @@ jobs:
         nuitka-version: main
         script-name: ufocus/main.py
         standalone: true
-        one-file: false
+        onefile: false
         enable-plugins: pyside6
         user-package-configuration-file: pypylon.yml
         windows-icon-from-ico: icons/icon3_256.png
+        noinclude-qt-translations: true
 
     # Uploads artifact
     - name: Upload Artifact

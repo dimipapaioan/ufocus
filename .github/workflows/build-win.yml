@@ -56,7 +56,7 @@ jobs:
         noinclude-qt-translations: true
 
     # Rename executable
-    - name: Build standalone with Nuitka
+    - name: Rename executable
       run: |
         rename build/main.dist/main.exe uFocus.exe
 

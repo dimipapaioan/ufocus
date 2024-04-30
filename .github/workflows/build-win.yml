@@ -58,7 +58,7 @@ jobs:
     # Rename executable
     - name: Rename executable
       run: |
-        rename build/main.dist/main.exe uFocus.exe
+        mv build/main.dist/main.exe build/main.dist/uFocus.exe
 
     # Uploads artifact
     - name: Upload Artifact

@@ -55,6 +55,11 @@ jobs:
         windows-icon-from-ico: icons/icon3_256.png
         noinclude-qt-translations: true
 
+    # Rename executable
+    - name: Build standalone with Nuitka
+      run: |
+        rename build/main.dist/main.exe uFocus.exe
+
     # Uploads artifact
     - name: Upload Artifact
       uses: actions/upload-artifact@v4

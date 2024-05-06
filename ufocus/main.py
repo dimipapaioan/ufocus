@@ -13,7 +13,7 @@ from main_window import main
 logging.config.dictConfig(LOGGING_CONFIG)
 
 def run_main() -> int:
-    exit_code = main()
+    exit_code: int = main()
     return exit_code
 
 if __name__ == "__main__":

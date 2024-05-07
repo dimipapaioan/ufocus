@@ -95,9 +95,9 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.0</p>
+<p>Version: 2.0.0</p>
 <p>Author: Dimitrios Papaioannou
-<a href = "mailto: dimi.papaioan@outlook.com"> dimi.papaioan@outlook.com </a> </p>
+<a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
 
 logger = logging.getLogger(__name__)

@@ -1012,8 +1012,7 @@ class MainWindow(QMainWindow):
                 self.spinboxThreshold.valueChanged.connect(self.imageProcessingWorker.setThreshold)
 
                 self.imageProcessingWorker.signals.imageProcessingDone.connect(self.imageProcessingFeed.video_label.setImage)
-                self.imageProcessingWorker.signals.imageProcessingParameters.connect(self.plotting.updatePlotEllipseAxes)
-                self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.plotting.updatePlotEllipse)
+                self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.plotting.updatePlotEllipseAxes)
                 self.imageProcessingWorker.signals.imageProcessingHist.connect(self.histograms.updateHist)
                 self.imageProcessingWorker.signals.imageProcessingHor.connect(self.histograms.updateHistHor)
                 self.imageProcessingWorker.signals.imageProcessingVert.connect(self.histograms.updateHistVert)
@@ -1038,7 +1037,7 @@ class MainWindow(QMainWindow):
         self.mutex = QMutex()
         self.condition = QWaitCondition()
         self.minimizerWorker = Minimizer(self.pscontroller, self.mutex, self.condition, self)
-        self.imageProcessingWorker.signals.imageProcessingParameters.connect(self.minimizerWorker.get_res)
+        self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.minimizerWorker.get_res)
         self.minimizerWorker.signals.boundsError.connect(self.minimizerBoundsError)
         self.minimizerWorker.signals.inAccumulation.connect(self.imageProcessingWorker.setInAccumulation)
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
@@ -1066,7 +1065,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def onMinimizeStateChanged(self, checked):
         if checked:
-            if self.plotting.y1_data:
+            if self.plotting.major_data:
                 result = QMessageBox.warning(
                 self,
                 "Found existing data",

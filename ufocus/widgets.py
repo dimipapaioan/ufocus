@@ -27,6 +27,7 @@ from pyqtgraph import setConfigOptions, PlotWidget, mkPen, mkBrush
 
 from dirs import BASE_DATA_PATH
 from event_filter_cal import EventFilterCal
+from image_processing import DetectedEllipse
 import resources
 
 setConfigOptions(
@@ -335,17 +336,14 @@ class PlottingWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.parent = parent
-        self.counter = 0
         self.x_data = []
-        self.y1_data = []
-        self.y2_data = []
+        self.major_data = []
+        self.minor_data = []
         self.c1_data = []
         self.c2_data = []
         self.f_data = []
         self.xc_data = []
         self.yc_data = []
-        self.width_data = []
-        self.height_data = []
         self.angle_data = []
 
         QtAds.CDockManager.setConfigFlags(QtAds.CDockManager.DefaultNonOpaqueConfig)
@@ -361,7 +359,7 @@ class PlottingWidget(QWidget):
         self.graph1.setLabels(left="Length [px]", bottom="Count")
         self.graph1.addLegend(pen='k', brush='w', labelTextSize='8pt', colCount=2)
         self.item1 = self.graph1.plot(
-            self.y1_data, 
+            self.major_data,
             pen=mkPen({'color': "#1f77b4", 'width': 2}), 
             symbol='o', 
             symbolPen=mkPen({'color': "#1f77b4", 'width': 1}), 
@@ -370,7 +368,7 @@ class PlottingWidget(QWidget):
             name="Major"
         )
         self.item2 = self.graph1.plot(
-            self.y2_data,
+            self.minor_data,
             pen=mkPen({'color': "#ff7f0e", 'width': 2}),
             symbol='o', 
             symbolPen=mkPen({'color': "#ff7f0e", 'width': 1}),
@@ -481,23 +479,15 @@ class PlottingWidget(QWidget):
 
         self.setLayout(layout)
 
-
-    @Slot(list)
-    def updatePlotEllipseAxes(self, x):
-        self.y1_data.append(x[0])
-        self.y2_data.append(x[1])
-
-        self.item1.setData(self.y1_data)
-        self.item2.setData(self.y2_data)
-    
-    @Slot(tuple)
-    def updatePlotEllipse(self, x):
-        (xc, yc), (width, height), angle = x
-        self.xc_data.append(xc)
-        self.yc_data.append(yc)
-        self.width_data.append(width)
-        self.height_data.append(height)
-        self.angle_data.append(angle)
+    @Slot(DetectedEllipse)
+    def updatePlotEllipseAxes(self, detected_ellipse: DetectedEllipse):
+        self.xc_data.append(detected_ellipse.x_c)
+        self.yc_data.append(detected_ellipse.y_c)
+        self.major_data.append(detected_ellipse.major)
+        self.minor_data.append(detected_ellipse.minor)
+        self.item1.setData(self.major_data)
+        self.item2.setData(self.minor_data)
+        self.angle_data.append(detected_ellipse.angle)
 
     @Slot(list)
     def updatePlotCurrents(self, x):
@@ -533,16 +523,14 @@ class PlottingWidget(QWidget):
         filename = path / f'data_{date.today()}_{time.time_ns()}.csv'
         with filename.open(mode='w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Count", "xc", "yc", "width", "height", "angle", "Major", "Minor", "Q1", "Q2", "Function"])
+            writer.writerow(["Count", "xc", "yc", "minor", "major", "angle", "Q1", "Q2", "Function"])
             for row, line in enumerate(
                 zip_longest(
                     self.xc_data,
                     self.yc_data,
-                    self.width_data,
-                    self.height_data,
+                    self.minor_data,
+                    self.major_data,
                     self.angle_data,
-                    self.y1_data,
-                    self.y2_data, 
                     self.c1_data, 
                     self.c2_data, 
                     self.f_data,
@@ -562,17 +550,15 @@ class PlottingWidget(QWidget):
     def onActionClearData(self):
         self.xc_data.clear()
         self.yc_data.clear()
-        self.width_data.clear()
-        self.height_data.clear()
+        self.minor_data.clear()
+        self.major_data.clear()
         self.angle_data.clear()
-        self.y1_data.clear()
-        self.y2_data.clear()
         self.c1_data.clear()
         self.c2_data.clear()
         self.f_data.clear()
 
-        self.item1.setData(self.y1_data)
-        self.item2.setData(self.y2_data)
+        self.item1.setData(self.major_data)
+        self.item2.setData(self.minor_data)
         self.item3.setData(self.c1_data)
         self.item4.setData(self.c2_data)
         self.item5.setData(self.f_data)

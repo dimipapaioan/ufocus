@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from dataclasses import dataclass
 from datetime import date
 import logging
 from math import pi, sqrt, nan
@@ -19,13 +20,30 @@ DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class DetectedEllipse:
+    x_c: float = nan
+    y_c: float = nan
+    minor: float = nan
+    major: float = nan
+    angle: float = nan
+
+    def calculate_perimeter(self) -> float:
+        return pi * (3 * (self.major + self.minor) - sqrt((3 * self.major + self.minor) * (self.major + 3 * self.minor)))
+    
+    def circularity(self) -> float:
+        return 4 * pi**2 * self.major * self.minor / self.calculate_perimeter()**2
+
+    def eccentricity(self) -> float:
+        return sqrt(1 - (self.minor / self.major)**2)
+
+
 class ImageProcessingSignals(QObject):
     imageProcessingDone = Signal(ndarray)
     imageProcessingHist = Signal(ndarray)
     imageProcessingVert = Signal(ndarray)
     imageProcessingHor = Signal(ndarray)
-    imageProcessingParameters = Signal(list)
-    imageProcessingEllipse = Signal(tuple)
+    imageProcessingEllipse = Signal(DetectedEllipse)
     # imageProcessingFinished = Signal()
 
 
@@ -149,24 +167,22 @@ class ImageProcessing(QRunnable):
                     area = cv2.contourArea(contour)
                     if area > 100:
                         ellipse = cv2.fitEllipse(contour)
-                        (x_c, y_c), (width, height), angle = ellipse # height: major axis, width: minor axis
-                        epsilon = sqrt(1 - (width / height)**2)
-                        circularity = 4 * pi**2 * height * width / self.calculate_perimeter(height, width)**2
+                        # (x_c, y_c), (width, height), angle = ellipse # height: major axis, width: minor axis
+                        detected_ellipse = DetectedEllipse(*ellipse[0], *ellipse[1], ellipse[2])
                         cv2.ellipse(im_copy, ellipse, (255, 255, 255), 2)
 
                         logger.info(
                             f'### Detected ellipse ###\n'
                             f'area: {area:.2f} px^2\n'
-                            f'major: {height:.4f} px\n'
-                            f'minor: {width:.4f} px\n'
-                            f'circ: {circularity:.4f}\n'
-                            f'ecc: {epsilon:.4f}'
+                            f'major: {detected_ellipse.major:.4f} px\n'
+                            f'minor: {detected_ellipse.minor:.4f} px\n'
+                            f'circ: {detected_ellipse.circularity():.4f}\n'
+                            f'ecc: {detected_ellipse.eccentricity():.4f}'
                         )
 
                 self.signals.imageProcessingDone.emit(im_copy)
                 try:
-                    self.signals.imageProcessingEllipse.emit(ellipse)
-                    self.signals.imageProcessingParameters.emit([height, width])
+                    self.signals.imageProcessingEllipse.emit(detected_ellipse)
                 except UnboundLocalError:
                     logger.warning("No ellipse detected...")
                     # Reset the counter
@@ -177,8 +193,7 @@ class ImageProcessing(QRunnable):
                         self.parent.spinboxThreshold.setValue(self.threshold - 1)
                     else:
                         logger.critical("Could not detect any ellipses")
-                        self.signals.imageProcessingEllipse.emit([(nan, nan), (nan, nan), nan])
-                        self.signals.imageProcessingParameters.emit([nan, nan])
+                        self.signals.imageProcessingEllipse.emit(DetectedEllipse())
                         if self.parent.minimizationButton.isChecked():
                             self.parent.minimizerWorker.control = True
                     return
@@ -221,9 +236,6 @@ class ImageProcessing(QRunnable):
             return n + 1
         else:
             return 0
-
-    def calculate_perimeter(self, a, b):
-        return pi * (3 * (a + b) - sqrt((3 * a + b) * (a + 3 * b)))
     
     @Slot(int)
     def setNumberOfImagesToAccumulate(self, n):

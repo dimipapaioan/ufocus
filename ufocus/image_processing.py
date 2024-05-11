@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 import logging
 from math import pi, sqrt, nan
@@ -27,15 +27,31 @@ class DetectedEllipse:
     minor: float = nan
     major: float = nan
     angle: float = nan
+    area: float = field(init=False)
+    perimeter: float = field(init=False)
+    circularity: float = field(init=False)
+    eccentricity: float = field(init=False)
 
-    def calculate_perimeter(self) -> float:
-        return pi * (3 * (self.major + self.minor) - sqrt((3 * self.major + self.minor) * (self.major + 3 * self.minor)))
-    
-    def circularity(self) -> float:
-        return 4 * pi**2 * self.major * self.minor / self.calculate_perimeter()**2
+    def __post_init__(self):
+        self.area = self.calculate_area(self.major, self.minor)
+        self.perimeter = self.calculate_perimeter(self.major, self.minor)
+        self.circularity = self.calculate_circularity(self.area, self.perimeter)
+        self.eccentricity = self.calculate_eccentricity(self.major, self.minor)
 
-    def eccentricity(self) -> float:
-        return sqrt(1 - (self.minor / self.major)**2)
+    def calculate_area(self, major: float, minor: float) -> float:
+        return 0.25 * pi * self.major * self.minor
+
+    def calculate_perimeter(self, major: float, minor: float) -> float:
+        return pi * (
+            3 * (major + minor)
+            - sqrt((3 * major + minor) * (major + 3 * minor))
+        )
+
+    def calculate_circularity(self, area: float, perimeter: float) -> float:
+        return 4 * pi * area / perimeter**2
+
+    def calculate_eccentricity(self, major: float, minor: float) -> float:
+        return sqrt(1 - (minor / major) ** 2)
 
 
 class ImageProcessingSignals(QObject):
@@ -176,8 +192,8 @@ class ImageProcessing(QRunnable):
                             f'area: {area:.2f} px^2\n'
                             f'major: {detected_ellipse.major:.4f} px\n'
                             f'minor: {detected_ellipse.minor:.4f} px\n'
-                            f'circ: {detected_ellipse.circularity():.4f}\n'
-                            f'ecc: {detected_ellipse.eccentricity():.4f}'
+                            f'circ: {detected_ellipse.circularity:.4f}\n'
+                            f'ecc: {detected_ellipse.eccentricity:.4f}'
                         )
 
                 self.signals.imageProcessingDone.emit(im_copy)

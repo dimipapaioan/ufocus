@@ -39,7 +39,7 @@ class DetectedEllipse:
         self.eccentricity = self.calculate_eccentricity(self.major, self.minor)
 
     def calculate_area(self, major: float, minor: float) -> float:
-        return 0.25 * pi * self.major * self.minor
+        return 0.25 * pi * major * minor
 
     def calculate_perimeter(self, major: float, minor: float) -> float:
         return pi * (

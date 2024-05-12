@@ -1065,7 +1065,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def onMinimizeStateChanged(self, checked):
         if checked:
-            if self.plotting.major_data:
+            if self.plotting.data.major:
                 result = QMessageBox.warning(
                 self,
                 "Found existing data",

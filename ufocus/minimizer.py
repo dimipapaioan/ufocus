@@ -11,6 +11,9 @@ from PySide6.QtCore import (
 )
 from scipy.optimize import minimize, OptimizeResult
 
+from image_processing import DetectedEllipse
+from settings_manager import SettingsManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,8 @@ class Minimizer(QRunnable):
         self.mutex = mutex
         self.condition = condition
         self.solution = None
-        self.parent.settings_manager.saveUserSettings()
+        self.settings_manager = SettingsManager()
+        self.settings_manager.saveUserSettings()
         self.signals = MinimizerSignals()
 
         logger.info("Minimizer initialized")
@@ -142,9 +146,9 @@ class Minimizer(QRunnable):
         return res
 
     @Slot(list)
-    def get_res(self, x):
+    def get_res(self, ellipse_data: DetectedEllipse):
         logger.debug("Got values from image processing")
-        self.res = x
+        self.res = (ellipse_data.major, ellipse_data.minor)
         self.condition.wakeAll()
 
     def set_res(self):

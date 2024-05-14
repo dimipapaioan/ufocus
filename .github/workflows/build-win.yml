@@ -28,6 +28,7 @@ jobs:
 
     steps:
     # Checkout repository
+    - name: Checkout code
     - uses: actions/checkout@v4
 
     # Setup Python

@@ -2,6 +2,7 @@
 
 import json
 import logging
+from threading import Lock
 
 from PySide6.QtCore import QPoint
 
@@ -30,6 +31,7 @@ DEFAULT_SETTINGS = {
     "draw_scan_x40": False,
     "draw_scan_x16": False,
 }
+
 SETTINGS_T1 = (
     "p_i",
     "p_f",
@@ -65,8 +67,24 @@ class JSONSpecialDecoder(json.JSONDecoder):
         return obj
 
 
-class SettingsManager:
-    """Create a settings manager for the application."""
+class SettingsManagerMeta(type):
+    """
+    Thread-safe implementation of a Singleton for the SettingsManager.
+    """
+
+    _instance = None
+    _lock: Lock = Lock()
+
+    def __call__(cls, *args, **kwargs):
+        with cls._lock:
+            if cls._instance is None:
+                instance = super().__call__(*args, **kwargs)
+                cls._instance = instance
+        return cls._instance
+
+
+class SettingsManager(metaclass=SettingsManagerMeta):
+    """Create a thread-safe settings manager singleton for the application."""
 
     def __init__(self, parent):
         self.parent = parent

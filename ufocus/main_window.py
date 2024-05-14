@@ -95,7 +95,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.0.0</p>
+<p>Version: 2.1.0</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -1012,8 +1012,7 @@ class MainWindow(QMainWindow):
                 self.spinboxThreshold.valueChanged.connect(self.imageProcessingWorker.setThreshold)
 
                 self.imageProcessingWorker.signals.imageProcessingDone.connect(self.imageProcessingFeed.video_label.setImage)
-                self.imageProcessingWorker.signals.imageProcessingParameters.connect(self.plotting.updatePlotEllipseAxes)
-                self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.plotting.updatePlotEllipse)
+                self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.plotting.updatePlotEllipseAxes)
                 self.imageProcessingWorker.signals.imageProcessingHist.connect(self.histograms.updateHist)
                 self.imageProcessingWorker.signals.imageProcessingHor.connect(self.histograms.updateHistHor)
                 self.imageProcessingWorker.signals.imageProcessingVert.connect(self.histograms.updateHistVert)
@@ -1038,7 +1037,7 @@ class MainWindow(QMainWindow):
         self.mutex = QMutex()
         self.condition = QWaitCondition()
         self.minimizerWorker = Minimizer(self.pscontroller, self.mutex, self.condition, self)
-        self.imageProcessingWorker.signals.imageProcessingParameters.connect(self.minimizerWorker.get_res)
+        self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.minimizerWorker.get_res)
         self.minimizerWorker.signals.boundsError.connect(self.minimizerBoundsError)
         self.minimizerWorker.signals.inAccumulation.connect(self.imageProcessingWorker.setInAccumulation)
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
@@ -1066,7 +1065,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def onMinimizeStateChanged(self, checked):
         if checked:
-            if self.plotting.y1_data:
+            if self.plotting.data.major:
                 result = QMessageBox.warning(
                 self,
                 "Found existing data",

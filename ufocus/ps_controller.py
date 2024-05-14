@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import queue
-import re
-import threading
+from queue import Queue
+from re import compile
+from threading import Thread
 
 from PySide6.QtCore import (
     QObject, Signal, Slot, QRunnable, QTimer, QEventLoop
@@ -29,13 +29,13 @@ class PSController(QRunnable):
         self.serial_port = serial_port
         self.ps1 = None
         self.ps2 = None
-        self.pattern = re.compile(r'(\d+\.*\d*)')
+        self.pattern = compile(r'(\d+\.*\d*)')
         self.data = {
             'MV1': None, 'PV1': None, 'MC1': None, 'PC1': None,
             'MV2': None, 'PV2': None, 'MC2': None, 'PC2': None,
         }
         self.successfull = {'PS1': False, 'PS2': False}
-        self.queue = queue.Queue()
+        self.queue = Queue()
         self.queue_thread = None
         self.control = True
         self.signals = PSControllerSignals(self.parent)
@@ -78,7 +78,7 @@ class PSController(QRunnable):
             self.signals.controlTimer.connect(self.controlTimer)
 
             # Start the thread that manages the queue and update the GUI
-            self.queue_thread = threading.Thread(target=self.commandWorker, daemon=True)
+            self.queue_thread = Thread(target=self.commandWorker, daemon=True)
             self.queue_thread.start()
             self.refreshGUI()
             

@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
+from dataclasses import dataclass, field
 from datetime import date
 import logging
 from math import pi, sqrt, nan
 
 import cv2
-import numpy as np
+from numpy import ndarray, zeros, save
 from PySide6.QtCore import (
     QObject, Signal, Slot, QEventLoop, QRunnable
-    )
+)
 
 
 from dirs import BASE_DATA_PATH
+from settings_manager import SettingsManager
 
 # Generate the appropriate paths for saving data
 DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
@@ -19,13 +21,46 @@ DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class DetectedEllipse:
+    x_c: float = nan
+    y_c: float = nan
+    minor: float = nan
+    major: float = nan
+    angle: float = nan
+    area: float = field(init=False)
+    perimeter: float = field(init=False)
+    circularity: float = field(init=False)
+    eccentricity: float = field(init=False)
+
+    def __post_init__(self):
+        self.area = self.calculate_area(self.major, self.minor)
+        self.perimeter = self.calculate_perimeter(self.major, self.minor)
+        self.circularity = self.calculate_circularity(self.area, self.perimeter)
+        self.eccentricity = self.calculate_eccentricity(self.major, self.minor)
+
+    def calculate_area(self, major: float, minor: float) -> float:
+        return 0.25 * pi * major * minor
+
+    def calculate_perimeter(self, major: float, minor: float) -> float:
+        return pi * (
+            3 * (major + minor)
+            - sqrt((3 * major + minor) * (major + 3 * minor))
+        )
+
+    def calculate_circularity(self, area: float, perimeter: float) -> float:
+        return 4 * pi * area / perimeter**2
+
+    def calculate_eccentricity(self, major: float, minor: float) -> float:
+        return sqrt(1 - (minor / major) ** 2)
+
+
 class ImageProcessingSignals(QObject):
-    imageProcessingDone = Signal(np.ndarray)
-    imageProcessingHist = Signal(np.ndarray)
-    imageProcessingVert = Signal(np.ndarray)
-    imageProcessingHor = Signal(np.ndarray)
-    imageProcessingParameters = Signal(list)
-    imageProcessingEllipse = Signal(tuple)
+    imageProcessingDone = Signal(ndarray)
+    imageProcessingHist = Signal(ndarray)
+    imageProcessingVert = Signal(ndarray)
+    imageProcessingHor = Signal(ndarray)
+    imageProcessingEllipse = Signal(DetectedEllipse)
     # imageProcessingFinished = Signal()
 
 
@@ -34,21 +69,22 @@ class ImageProcessing(QRunnable):
         super().__init__(parent)
         self.parent = parent
         self.signals = ImageProcessingSignals()
-        self.accumulatedImages = 0
-        self.skippedImages = 0
-        self.numberOfImage = 0
-        self.numberOfRuns = self.determine_run()
+        self.accumulatedImages: int = 0
+        self.skippedImages: int = 0
+        self.numberOfImage: int = 0
+        self.numberOfRuns: int = self.determine_run()
         self.image_data_path = DATA_PATH / f'run_{self.numberOfRuns:02}' / 'images'
-        self.inAccumulation = True
-        self.accumulator = np.zeros((self.parent.camera_height, self.parent.camera_width))
-        self.profile_vertical = np.zeros((1, self.parent.camera_width))
-        self.profile_horizontal = np.zeros((self.parent.camera_height, 1))
+        self.inAccumulation: bool = True
+        self.accumulator = zeros((self.parent.camera_height, self.parent.camera_width))
+        self.profile_vertical = zeros((1, self.parent.camera_width))
+        self.profile_horizontal = zeros((self.parent.camera_height, 1))
         self.numberOfImagesToAccumulate = self.parent.spinboxImagesToAccumulate.value()
         self.applyGaussianFiltering = self.parent.checkboxGaussianFiltering.isChecked()
         self.kernelGaussianFiltering = (self.parent.spinboxGaussianKernel.value(), self.parent.spinboxGaussianKernel.value())
         self.threshold = self.parent.spinboxThreshold.value()
         self.save_images = self.parent.checkboxSaveImages.isChecked()
-        self.parent.settings_manager.saveUserSettings()
+        self.settings_manager = SettingsManager()
+        self.settings_manager.saveUserSettings()
     
     @Slot()
     def run(self):
@@ -59,8 +95,8 @@ class ImageProcessing(QRunnable):
         logger.info("Image processing terminated")
         # self.signals.imageProcessingFinished.emit()
 
-    @Slot(np.ndarray)
-    def imageProcessing(self, image):
+    @Slot(ndarray)
+    def imageProcessing(self, image: ndarray) -> None:
         if self.inAccumulation:
             if self.skippedImages != 0:
                 logger.info(f"Skipped {self.skippedImages} images")
@@ -76,14 +112,14 @@ class ImageProcessing(QRunnable):
                 image = image[y1:y2, x1:x2]
 
                 if self.accumulatedImages == 0:
-                    self.accumulator = np.zeros((y2 - y1, x2 - x1))
-                    self.profile_vertical = np.zeros((1, x2 - x1))
-                    self.profile_horizontal = np.zeros((y2 - y1, 1))
+                    self.accumulator = zeros((y2 - y1, x2 - x1))
+                    self.profile_vertical = zeros((1, x2 - x1))
+                    self.profile_horizontal = zeros((y2 - y1, 1))
             else:
                 if self.accumulatedImages == 0:
-                    self.accumulator = np.zeros((self.parent.camera_height, self.parent.camera_width))
-                    self.profile_vertical = np.zeros((1, self.parent.camera_width))
-                    self.profile_horizontal = np.zeros((self.parent.camera_height, 1))
+                    self.accumulator = zeros((self.parent.camera_height, self.parent.camera_width))
+                    self.profile_vertical = zeros((1, self.parent.camera_width))
+                    self.profile_horizontal = zeros((self.parent.camera_height, 1))
 
             self.accumulatedImages += 1
             # print(f'Accumulated {self.accumulatedImages} images.', end='\r')
@@ -149,24 +185,22 @@ class ImageProcessing(QRunnable):
                     area = cv2.contourArea(contour)
                     if area > 100:
                         ellipse = cv2.fitEllipse(contour)
-                        (x_c, y_c), (width, height), angle = ellipse # height: major axis, width: minor axis
-                        epsilon = sqrt(1 - (width / height)**2)
-                        circularity = 4 * pi**2 * height * width / self.calculate_perimeter(height, width)**2
+                        # (x_c, y_c), (width, height), angle = ellipse # height: major axis, width: minor axis
+                        detected_ellipse = DetectedEllipse(*ellipse[0], *ellipse[1], ellipse[2])
                         cv2.ellipse(im_copy, ellipse, (255, 255, 255), 2)
 
                         logger.info(
                             f'### Detected ellipse ###\n'
                             f'area: {area:.2f} px^2\n'
-                            f'major: {height:.4f} px\n'
-                            f'minor: {width:.4f} px\n'
-                            f'circ: {circularity:.4f}\n'
-                            f'ecc: {epsilon:.4f}'
+                            f'major: {detected_ellipse.major:.4f} px\n'
+                            f'minor: {detected_ellipse.minor:.4f} px\n'
+                            f'circ: {detected_ellipse.circularity:.4f}\n'
+                            f'ecc: {detected_ellipse.eccentricity:.4f}'
                         )
 
                 self.signals.imageProcessingDone.emit(im_copy)
                 try:
-                    self.signals.imageProcessingEllipse.emit(ellipse)
-                    self.signals.imageProcessingParameters.emit([height, width])
+                    self.signals.imageProcessingEllipse.emit(detected_ellipse)
                 except UnboundLocalError:
                     logger.warning("No ellipse detected...")
                     # Reset the counter
@@ -177,8 +211,7 @@ class ImageProcessing(QRunnable):
                         self.parent.spinboxThreshold.setValue(self.threshold - 1)
                     else:
                         logger.critical("Could not detect any ellipses")
-                        self.signals.imageProcessingEllipse.emit([(nan, nan), (nan, nan), nan])
-                        self.signals.imageProcessingParameters.emit([nan, nan])
+                        self.signals.imageProcessingEllipse.emit(DetectedEllipse())
                         if self.parent.minimizationButton.isChecked():
                             self.parent.minimizerWorker.control = True
                     return
@@ -193,7 +226,7 @@ class ImageProcessing(QRunnable):
 
                     # Save images
                     for filename, data in zip((filename_norm, filename_proc), (im, im_copy)):
-                        np.save(self.image_data_path / filename, data)
+                        save(self.image_data_path / filename, data)
                         logger.info(f"Saved image: {self.image_data_path / filename}")
 
                 logger.info(f"Finished processing of {self.accumulatedImages} images")
@@ -221,9 +254,6 @@ class ImageProcessing(QRunnable):
             return n + 1
         else:
             return 0
-
-    def calculate_perimeter(self, a, b):
-        return pi * (3 * (a + b) - sqrt((3 * a + b) * (a + 3 * b)))
     
     @Slot(int)
     def setNumberOfImagesToAccumulate(self, n):

@@ -5,6 +5,9 @@ from PySide6.QtCore import (
     )
 from PySide6.QtWidgets import QGraphicsSceneMouseEvent
 
+from settings_manager import SettingsManager
+
+
 class EventFilter(QObject):
     
     positionChanged = Signal(QPoint)
@@ -16,6 +19,7 @@ class EventFilter(QObject):
         self.camera_height = 2048
         self.widget.scene().installEventFilter(self)
         self.widget.setMouseTracking(True)
+        self.settings_manager = SettingsManager()
 
     def eventFilter(self, obj, event: QGraphicsSceneMouseEvent):
         if obj is self.widget.scene() and not self.widget.pixmap.pixmap().isNull():
@@ -35,16 +39,16 @@ class EventFilter(QObject):
                             # self.crosshairPoint.emit(position.toPoint() * self.ratio_height)
                             if self.widget.p_cross_x40 is None:
                                 self.widget.p_cross_x40 = position.toPoint() * self.ratio_height
-                                self.widget.parent.settings_manager.user_settings['p_cross_x40'] = self.widget.p_cross_x40
-                                self.widget.parent.settings_manager.saveUserSettings()
+                                self.settings_manager.user_settings['p_cross_x40'] = self.widget.p_cross_x40
+                                self.settings_manager.saveUserSettings()
                             else:
                                 event.ignore()
 
                         if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
                             if len(self.widget.pts_scan_x40) < 4:
                                 self.widget.pts_scan_x40.append(position.toPoint() * self.ratio_height)
-                                self.widget.parent.settings_manager.user_settings['pts_scan_x40'] = self.widget.pts_scan_x40
-                                self.widget.parent.settings_manager.saveUserSettings()
+                                self.settings_manager.user_settings['pts_scan_x40'] = self.widget.pts_scan_x40
+                                self.settings_manager.saveUserSettings()
                             else:
                                 event.ignore()
 
@@ -52,16 +56,16 @@ class EventFilter(QObject):
                             # self.crosshairPoint.emit(position.toPoint() * self.ratio_height)
                             if self.widget.p_cross_x16 is None:
                                 self.widget.p_cross_x16 = position.toPoint() * self.ratio_height
-                                self.widget.parent.settings_manager.user_settings['p_cross_x16'] = self.widget.p_cross_x16
-                                self.widget.parent.settings_manager.saveUserSettings()
+                                self.settings_manager.user_settings['p_cross_x16'] = self.widget.p_cross_x16
+                                self.settings_manager.saveUserSettings()
                             else:
                                 event.ignore()
 
                         if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.AltModifier):
                             if len(self.widget.pts_scan_x16) < 4:
                                 self.widget.pts_scan_x16.append(position.toPoint() * self.ratio_height)
-                                self.widget.parent.settings_manager.user_settings['pts_scan_x16'] = self.widget.pts_scan_x16
-                                self.widget.parent.settings_manager.saveUserSettings()
+                                self.settings_manager.user_settings['pts_scan_x16'] = self.widget.pts_scan_x16
+                                self.settings_manager.saveUserSettings()
                             else:
                                 event.ignore()
 
@@ -79,32 +83,32 @@ class EventFilter(QObject):
                     if self.widget.pixmap.sceneBoundingRect().contains(event.scenePos()):
                         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
                             self.widget.p_cross_x40 = None
-                            self.widget.parent.settings_manager.user_settings['p_cross_x40'] = self.widget.p_cross_x40
-                            self.widget.parent.settings_manager.saveUserSettings()
+                            self.settings_manager.user_settings['p_cross_x40'] = self.widget.p_cross_x40
+                            self.settings_manager.saveUserSettings()
 
                         if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier):
                             self.widget.pts_scan_x40.clear()
-                            self.widget.parent.settings_manager.user_settings['pts_scan_x40'] = self.widget.pts_scan_x40
-                            self.widget.parent.settings_manager.saveUserSettings()
+                            self.settings_manager.user_settings['pts_scan_x40'] = self.widget.pts_scan_x40
+                            self.settings_manager.saveUserSettings()
 
                         if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier):
                             self.widget.p_cross_x16 = None
-                            self.widget.parent.settings_manager.user_settings['p_cross_x16'] = self.widget.p_cross_x16
-                            self.widget.parent.settings_manager.saveUserSettings()
+                            self.settings_manager.user_settings['p_cross_x16'] = self.widget.p_cross_x16
+                            self.settings_manager.saveUserSettings()
 
                         if event.modifiers() == (Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.ShiftModifier | Qt.KeyboardModifier.AltModifier):
                             self.widget.pts_scan_x16.clear()
-                            self.widget.parent.settings_manager.user_settings['pts_scan_x16'] = self.widget.pts_scan_x16
-                            self.widget.parent.settings_manager.saveUserSettings()
+                            self.settings_manager.user_settings['pts_scan_x16'] = self.widget.pts_scan_x16
+                            self.settings_manager.saveUserSettings()
 
                         if event.modifiers() == Qt.KeyboardModifier.NoModifier:
                             self.widget.p_i = None
-                            self.widget.parent.settings_manager.user_settings['p_i'] = self.widget.p_i
+                            self.settings_manager.user_settings['p_i'] = self.widget.p_i
                             self.widget.p_f = None
-                            self.widget.parent.settings_manager.user_settings['p_f'] = self.widget.p_f
+                            self.settings_manager.user_settings['p_f'] = self.widget.p_f
                             self.widget.roi = False
-                            self.widget.parent.settings_manager.user_settings['roi'] = self.widget.roi
-                            self.widget.parent.settings_manager.saveUserSettings()
+                            self.settings_manager.user_settings['roi'] = self.widget.roi
+                            self.settings_manager.saveUserSettings()
                     # print(f'clicked, {self.p_i}, {self.p_f}')
 
             if event.type() == QGraphicsSceneMouseEvent.Type.GraphicsSceneMouseMove and self.widget.drawing == True:
@@ -145,16 +149,16 @@ class EventFilter(QObject):
                 if event.button() == Qt.MouseButton.LeftButton and self.widget.roi == False and self.widget.drawing == True:
                     self.widget.drawing = False
                     self.widget.roi = True
-                    self.widget.parent.settings_manager.user_settings['roi'] = self.widget.roi
+                    self.settings_manager.user_settings['roi'] = self.widget.roi
                     if self.widget.pixmap.sceneBoundingRect().contains(event.scenePos()):
                         self.widget.p_f = position.toPoint() * self.ratio_height
-                        self.widget.parent.settings_manager.user_settings['p_i'] = self.widget.p_i
-                        self.widget.parent.settings_manager.user_settings['p_f'] = self.widget.p_f
+                        self.settings_manager.user_settings['p_i'] = self.widget.p_i
+                        self.settings_manager.user_settings['p_f'] = self.widget.p_f
                         # self.widget.roi = True
                         # print(f'roi, {self.p_i}, {self.p_f}')
                     # else:
                     #     print(f'roi, {self.p_i}, {self.p_f}')
-                    self.widget.parent.settings_manager.saveUserSettings()
+                    self.settings_manager.saveUserSettings()
                 
         return super().eventFilter(obj, event)
     

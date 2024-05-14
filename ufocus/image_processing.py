@@ -13,6 +13,7 @@ from PySide6.QtCore import (
 
 
 from dirs import BASE_DATA_PATH
+from settings_manager import SettingsManager
 
 # Generate the appropriate paths for saving data
 DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
@@ -82,7 +83,8 @@ class ImageProcessing(QRunnable):
         self.kernelGaussianFiltering = (self.parent.spinboxGaussianKernel.value(), self.parent.spinboxGaussianKernel.value())
         self.threshold = self.parent.spinboxThreshold.value()
         self.save_images = self.parent.checkboxSaveImages.isChecked()
-        self.parent.settings_manager.saveUserSettings()
+        self.settings_manager = SettingsManager()
+        self.settings_manager.saveUserSettings()
     
     @Slot()
     def run(self):

@@ -1,18 +1,41 @@
 # -*- coding: utf-8 -*-
+import logging
+from typing import Optional
+
+from cv2 import VideoCapture, error
 
 from cameras.camera_base import CameraBase
+
+logger = logging.getLogger(__name__)
+
+
+class CameraConnectionError(Exception):
+    pass
 
 
 class BuiltInCamera(CameraBase):
 
     def __init__(self):
         super().__init__()
+        self.camera: Optional[VideoCapture] = None
+    
+    def configure(self) -> None:
+        self.width = 640
+        self.height = 480
 
-    def connect(self):
-        pass
+    def connect(self, idx: int) -> None:
+        self.camera = VideoCapture()
+        self.camera.setExceptionMode(True)
+        try:
+            self.camera.open(0)
+        except error as e:
+            logger.error(e.msg)
+            raise CameraConnectionError from e
 
     def disconnect(self):
-        pass
+        if self.camera.isOpened():
+            self.camera.release()
+        self.camera = None
 
     def start(self):
         pass

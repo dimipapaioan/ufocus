@@ -22,7 +22,10 @@ import serial
 from serial.tools.list_ports import comports
 
 from cameras.basler_camera import BaslerCamera, CameraConnectionError
-from camera_worker import CameraWorkerR
+from cameras.builtin_camera import BuiltInCamera, CameraConnectionError
+from cameras.camera_base import CameraBase
+from workers.basler_camera_worker import BaslerCameraWorker
+from workers.builtin_camera_worker import BuiltInCameraWorker
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing import ImageProcessing
@@ -112,8 +115,8 @@ class MainWindow(QMainWindow):
         self.ports = self.list_ports()
         self.serial_port = None
         # self.factory = pylon.TlFactory.GetInstance()
-        self.camera: Optional[BaslerCamera] = BaslerCamera()
-        self.devices = self.list_cameras()
+        # self.camera: Optional[BaslerCamera] = BaslerCamera()
+        self.devices: list[CameraBase] = self.list_cameras()
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
         self.initUI()
@@ -166,8 +169,8 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self):
-        return self.camera.list_cameras()
+    def list_cameras(self) -> list[CameraBase]:
+        return [BaslerCamera(), BuiltInCamera()]
 
     # def connect_camera(self, camera_idx):
     #     camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[camera_idx]))
@@ -579,7 +582,7 @@ class MainWindow(QMainWindow):
 
         if self.devices:
             for device in self.devices:
-                self.comboboxCamera.addItem(device.GetFriendlyName())
+                self.comboboxCamera.addItem(device.__class__.__name__)
             self.comboboxSerial.setCurrentIndex(1)
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
@@ -859,12 +862,15 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            self.worker = CameraWorkerR(self.camera.camera, self)
+            if isinstance(self.camera, BaslerCamera):
+                self.worker = BaslerCameraWorker(self.camera.camera, self)
+            else:
+                self.worker = BuiltInCameraWorker(self.camera.camera, self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:
             # Connect signals and slots
-            self.worker.handler.updateFrame.connect(self.video_label.setImage)
+            self.worker.signals.updateFrame.connect(self.video_label.setImage)
             self.worker.signals.fps.connect(
                 lambda fps: self.statusLabelFPS.setText(f'FPS: {fps:.2f}')
             )
@@ -1244,6 +1250,8 @@ class MainWindow(QMainWindow):
     def onCameraChecked(self, checked):
         if checked:
             try:
+                index = self.comboboxCamera.currentIndex()
+                self.camera = self.devices[index]
                 self.camera.connect(self.comboboxCamera.currentIndex())
             except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)
@@ -1260,12 +1268,18 @@ class MainWindow(QMainWindow):
                 self.camera.configure()
                 self.event_filter.setCameraWidthAndHeight((self.camera.width, self.camera.height))
 
-                self.updateCameraParameters()
+                try:
+                    self.updateCameraParameters()
+                except AttributeError:
+                    pass
                 self.actionResetCamera.setEnabled(True)
         else:
             if self.camera is not None:
-                if self.camera.camera.IsGrabbing():
-                    self.stop_capture()
+                if isinstance(self.camera, BaslerCamera):
+                    if self.camera.camera.IsGrabbing():
+                        self.stop_capture()
+                else:
+                    self.camera.camera.release()
                 self.camera.disconnect()
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")

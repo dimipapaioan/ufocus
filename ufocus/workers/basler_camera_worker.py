@@ -5,7 +5,7 @@ import time
 
 from pypylon import pylon
 from pypylon.genicam import GenericException
-import numpy as np
+from numpy import ndarray
 
 from PySide6.QtCore import (
     QObject, Signal, Slot, QRunnable
@@ -15,22 +15,26 @@ from PySide6.QtGui import QImage
 
 logger = logging.getLogger(__name__)
 
-class CameraWorkerRSignals(QObject):
+class BaslerCameraWorkerSignals(QObject):
     finished = Signal()
+    progress = Signal(ndarray)
+    updateFrame = Signal(QImage)
     fps = Signal(float)
     error = Signal()
 
-class CameraWorkerR(QRunnable):
+class BaslerCameraWorker(QRunnable):
 
     def __init__(self, camera, parent=None):
         super().__init__(parent)
         self.parent = parent
         self.camera = camera
-        self.signals = CameraWorkerRSignals(self.parent)
+        self.signals = BaslerCameraWorkerSignals(self.parent)
         self.handler = CameraImageHandler(self.parent)
         self.camera.RegisterImageEventHandler(self.handler, pylon.RegistrationMode_ReplaceAll, pylon.Cleanup_Delete)
         self.printer = ConfigurationEventPrinter()
         self.camera.RegisterConfiguration(self.printer, pylon.RegistrationMode_Append, pylon.Cleanup_Delete)
+        self.handler.updateFrame.connect(self.signals.updateFrame.emit)
+        self.handler.progress.connect(self.signals.progress.emit)
 
         logger.info("Camera worker initialized")
 
@@ -58,7 +62,7 @@ class CameraWorkerR(QRunnable):
 
 
 class CameraImageHandler(pylon.ImageEventHandler, QObject):
-    progress = Signal(np.ndarray)
+    progress = Signal(ndarray)
     updateFrame = Signal(QImage)
     
     def __init__(self, parent=None):

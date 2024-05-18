@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from typing import Optional
 
 from pypylon import pylon
 from PySide6.QtCore import (
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
 import serial
 from serial.tools.list_ports import comports
 
+from cameras.basler_camera import BaslerCamera, CameraConnectionError
 from camera_worker import CameraWorkerR
 from dirs import BASE_PATH
 from event_filter import EventFilter
@@ -109,9 +111,9 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        self.factory = pylon.TlFactory.GetInstance()
+        # self.factory = pylon.TlFactory.GetInstance()
+        self.camera: Optional[BaslerCamera] = BaslerCamera()
         self.devices = self.list_cameras()
-        self.camera = None
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
         self.initUI()
@@ -165,24 +167,18 @@ class MainWindow(QMainWindow):
         # self.serial_port = None
 
     def list_cameras(self):
-        devices = self.factory.EnumerateDevices()
-        if devices:
-            logger.info("Camera devices found")
-            return devices
-        else:
-            logger.warning("No camera devices found")
-            return []
+        return self.camera.list_cameras()
 
-    def connect_camera(self, camera_idx):
-        camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[camera_idx]))
-        return camera
+    # def connect_camera(self, camera_idx):
+    #     camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[camera_idx]))
+    #     return camera
 
-    def disconnect_camera(self, camera):
-        if camera.IsGrabbing():
-            camera.StopGrabbing()
+    # def disconnect_camera(self, camera):
+    #     if camera.IsGrabbing():
+    #         camera.StopGrabbing()
 
-        camera.Close()
-        camera.DestroyDevice()
+    #     camera.Close()
+    #     camera.DestroyDevice()
 
     def initUI(self):
         self.setWindowTitle("μFocus")
@@ -863,7 +859,7 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            self.worker = CameraWorkerR(self.camera, self)
+            self.worker = CameraWorkerR(self.camera.camera, self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:
@@ -907,7 +903,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def stop_capture(self):
-        self.worker.camera.StopGrabbing()
+        self.worker.camera.camera.StopGrabbing()
         # self.worker.camera.Close()
         # print("Finished")
         # self.worker.signals.finished.emit()
@@ -1248,8 +1244,8 @@ class MainWindow(QMainWindow):
     def onCameraChecked(self, checked):
         if checked:
             try:
-                self.camera = self.connect_camera(self.comboboxCamera.currentIndex())
-            except pylon.RuntimeException:
+                self.camera.connect(self.comboboxCamera.currentIndex())
+            except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)
                 logger.error("Could not connect to camera")
                 QMessageBox.critical(
@@ -1261,33 +1257,34 @@ class MainWindow(QMainWindow):
             else:
                 self.comboboxCamera.setEnabled(False)
                 self.connectionButtonCamera.setText("Disconnect")
-                self.configure_camera(self.camera)
+                self.camera.configure()
+                self.event_filter.setCameraWidthAndHeight((self.camera.width, self.camera.height))
 
                 self.updateCameraParameters()
                 self.actionResetCamera.setEnabled(True)
         else:
             if self.camera is not None:
-                if self.camera.IsGrabbing():
+                if self.camera.camera.IsGrabbing():
                     self.stop_capture()
-                self.disconnect_camera(self.camera)
+                self.camera.disconnect()
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")
                 self.actionResetCamera.setEnabled(False)
 
-    def configure_camera(self, camera):
-        camera.Open()
-        # to get consistant results it is always good to start from "power-on" state
-        # camera.UserSetSelector.Value = "Default"
-        # camera.UserSetLoad.Execute()
+    # def configure_camera(self, camera):
+    #     camera.Open()
+    #     # to get consistant results it is always good to start from "power-on" state
+    #     # camera.UserSetSelector.Value = "Default"
+    #     # camera.UserSetLoad.Execute()
 
-        # Configure the camera
-        camera.PixelFormat.Value = "Mono8"
-        # camera.ExposureTime.Value = 50_000.0
-        # camera.Gain.Value = 25.0
-        # camera.BslContrast.Value = 0.0
-        self.camera_width = camera.Width.GetValue()
-        self.camera_height = camera.Height.GetValue()
-        self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
+    #     # Configure the camera
+    #     camera.PixelFormat.Value = "Mono8"
+    #     # camera.ExposureTime.Value = 50_000.0
+    #     # camera.Gain.Value = 25.0
+    #     # camera.BslContrast.Value = 0.0
+    #     self.camera_width = camera.Width.GetValue()
+    #     self.camera_height = camera.Height.GetValue()
+    #     # self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
     
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(
@@ -1309,22 +1306,22 @@ class MainWindow(QMainWindow):
         )
         self.spinboxContrast.setValue(self.camera.BslContrast.GetValue())
     
-    @Slot()
-    def reset_camera_settings(self, camera):
-        if camera.IsOpen():
-            if camera.IsGrabbing():
-                camera.StopGrabbing()
+    # @Slot()
+    # def reset_camera_settings(self, camera):
+    #     if camera.IsOpen():
+    #         if camera.IsGrabbing():
+    #             camera.StopGrabbing()
 
-            # Retrieve default settings
-            camera.UserSetSelector.SetValue("Default")
-            camera.UserSetLoad.Execute()
+    #         # Retrieve default settings
+    #         camera.UserSetSelector.SetValue("Default")
+    #         camera.UserSetLoad.Execute()
 
-            # Re-configure the camera
-            camera.PixelFormat.SetValue("Mono8")
-            self.camera_width = camera.Width.GetValue()
-            self.camera_height = camera.Height.GetValue()
-            self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
-            self.updateCameraParameters()
+    #         # Re-configure the camera
+    #         camera.PixelFormat.SetValue("Mono8")
+    #         self.camera_width = camera.Width.GetValue()
+    #         self.camera_height = camera.Height.GetValue()
+    #         self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
+    #         self.updateCameraParameters()
 
     def closeEvent(self, event):
         result = QMessageBox.question(
@@ -1342,8 +1339,8 @@ class MainWindow(QMainWindow):
                     self.pscontroller.control = False
                     self.pscontroller.loop.exit()
                     self.pscontroller.queue_thread.join(timeout=0.5)
-            if self.camera is not None:
-                if self.camera.IsGrabbing():
+            if self.camera.camera is not None:
+                if self.camera.camera.IsGrabbing():
                     logger.warning("Camera is still open")
                     self.stop_capture()
                     logger.info("Camera closed")

@@ -24,6 +24,9 @@ class BuiltInCamera(CameraBase):
         self.width = 640
         self.height = 480
 
+    def reset(self) -> None:
+        pass
+
     def connect(self, idx: int) -> None:
         self.camera = VideoCapture()
         self.camera.setExceptionMode(True)

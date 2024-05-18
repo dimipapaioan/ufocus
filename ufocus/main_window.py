@@ -166,6 +166,8 @@ class MainWindow(QMainWindow):
         # self.serial_port = None
 
     def list_cameras(self) -> list:
+        # This method will be modified once the extension architecture is implemented
+        # For now just directly initialize the Camera objects
         return [BaslerCamera(), BuiltInCamera()]
 
     def initUI(self):
@@ -664,9 +666,6 @@ class MainWindow(QMainWindow):
 
         self.actionResetCamera = QAction("Reset camera settings", self)
         self.actionResetCamera.setEnabled(False)
-        self.actionResetCamera.triggered.connect(
-            lambda: self.reset_camera_settings(self.camera)
-        )
     
     @Slot()
     def setCameraExposureTime(self, value):
@@ -1203,19 +1202,6 @@ class MainWindow(QMainWindow):
             f"<p>Check whether they are properly connected to the computer or to external power.</p>",
             QMessageBox.StandardButton.Ok
         )
-    # @Slot(int)
-    # def onDial1Moved(self, value):
-    #     print(f'Current of PS1 changed to: {value / 100}')
-    #     self.ps1.set_programmed_current(value / 100)
-    #     # print("Restarted refresh timer.")
-    #     # self.refreshTimer.start(1000)
-
-    # @Slot(int)
-    # def onDial2Moved(self, value):
-    #     print(f'Current of PS2 changed to: {value / 100}')
-    #     self.ps2.set_programmed_current(value / 100)
-    #     # print("Restarted refresh timer.")
-    #     # self.refreshTimer.start(1000)
 
     @Slot(list)
     def setPSCurrents(self, x):
@@ -1246,6 +1232,7 @@ class MainWindow(QMainWindow):
                 self.camera.configure()
                 self.event_filter.setCameraWidthAndHeight((self.camera.width, self.camera.height))
                 self.close_button.clicked.connect(self.stop_capture)
+                self.actionResetCamera.triggered.connect(self.camera.reset)
 
                 try:
                     self.updateCameraParameters()
@@ -1279,23 +1266,6 @@ class MainWindow(QMainWindow):
             self.camera.BslContrast.Max * 100
         )
         self.spinboxContrast.setValue(self.camera.BslContrast.GetValue())
-    
-    # @Slot()
-    # def reset_camera_settings(self, camera):
-    #     if camera.IsOpen():
-    #         if camera.IsGrabbing():
-    #             camera.StopGrabbing()
-
-    #         # Retrieve default settings
-    #         camera.UserSetSelector.SetValue("Default")
-    #         camera.UserSetLoad.Execute()
-
-    #         # Re-configure the camera
-    #         camera.PixelFormat.SetValue("Mono8")
-    #         self.camera_width = camera.Width.GetValue()
-    #         self.camera_height = camera.Height.GetValue()
-    #         self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
-    #         self.updateCameraParameters()
 
     def closeEvent(self, event):
         result = QMessageBox.question(

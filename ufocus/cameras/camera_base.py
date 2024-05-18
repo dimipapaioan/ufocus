@@ -16,6 +16,9 @@ class CameraBase(ABC):
     def configure(self): ...
 
     @abstractmethod
+    def reset(self): ...
+
+    @abstractmethod
     def connect(self): ...
 
     @abstractmethod

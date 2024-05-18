@@ -1259,21 +1259,6 @@ class MainWindow(QMainWindow):
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")
                 self.actionResetCamera.setEnabled(False)
-
-    # def configure_camera(self, camera):
-    #     camera.Open()
-    #     # to get consistant results it is always good to start from "power-on" state
-    #     # camera.UserSetSelector.Value = "Default"
-    #     # camera.UserSetLoad.Execute()
-
-    #     # Configure the camera
-    #     camera.PixelFormat.Value = "Mono8"
-    #     # camera.ExposureTime.Value = 50_000.0
-    #     # camera.Gain.Value = 25.0
-    #     # camera.BslContrast.Value = 0.0
-    #     self.camera_width = camera.Width.GetValue()
-    #     self.camera_height = camera.Height.GetValue()
-    #     # self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
     
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(

@@ -56,13 +56,14 @@ class BaslerCamera(CameraBase):
             self.camera.Open()
         except pylon.RuntimeException:
             raise CameraConnectionError
+        else:
+            self.is_connected = True
 
     def disconnect(self) -> None:
-        if self.camera.IsGrabbing():
-            self.camera.StopGrabbing()
-
+        self.stop()
         self.camera.Close()
         self.camera.DestroyDevice()
+        self.is_connected = False
 
     def get_worker(self, parent):
         return BaslerCameraWorker(self.camera, parent)
@@ -71,4 +72,5 @@ class BaslerCamera(CameraBase):
         pass
 
     def stop(self) -> None:
-        self.camera.StopGrabbing()
+        if self.camera.IsGrabbing():
+            self.camera.StopGrabbing()

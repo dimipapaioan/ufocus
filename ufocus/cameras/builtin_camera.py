@@ -32,11 +32,13 @@ class BuiltInCamera(CameraBase):
         except error as e:
             logger.error(e.msg)
             raise CameraConnectionError from e
+        else:
+            self.is_connected = True
 
-    def disconnect(self):
-        if self.camera.isOpened():
-            self.camera.release()
+    def disconnect(self) -> None:
+        self.stop()
         self.camera = None
+        self.is_connected = False
 
     def get_worker(self, parent):
         return BuiltInCameraWorker(self.camera, parent)
@@ -45,4 +47,5 @@ class BuiltInCamera(CameraBase):
         pass
 
     def stop(self) -> None:
-        self.camera.release()
+        if self.camera.isOpened():
+            self.camera.release()

@@ -10,6 +10,7 @@ class CameraBase(ABC):
         super().__init__()
         self.width: Optional[int] = None
         self.height: Optional[int] = None
+        self.is_connected: bool = False
 
     @abstractmethod
     def configure(self): ...

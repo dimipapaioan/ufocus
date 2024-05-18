@@ -112,6 +112,7 @@ class MainWindow(QMainWindow):
         self.ports = self.list_ports()
         self.serial_port = None
         self.devices: list = self.list_cameras()
+        self.camera = None
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
         self.initUI()
@@ -1327,11 +1328,11 @@ class MainWindow(QMainWindow):
                     self.pscontroller.control = False
                     self.pscontroller.loop.exit()
                     self.pscontroller.queue_thread.join(timeout=0.5)
-            if self.camera.camera is not None:
-                if self.camera.camera.IsGrabbing():
-                    logger.warning("Camera is still open")
-                    self.stop_capture()
-                    logger.info("Camera closed")
+            if self.camera is not None:
+                if self.camera.is_connected:
+                    logger.warning("Camera is still connected")
+                    self.camera.disconnect()
+                    logger.info("Camera disconnected")
             if hasattr(self, 'imageProcessingWorker'):
                 if self.imageProcessingWorker.eventloop.isRunning():
                     logger.warning("Image processing is still running")

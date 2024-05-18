@@ -114,8 +114,6 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        # self.factory = pylon.TlFactory.GetInstance()
-        # self.camera: Optional[BaslerCamera] = BaslerCamera()
         self.devices: list[CameraBase] = self.list_cameras()
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
@@ -171,17 +169,6 @@ class MainWindow(QMainWindow):
 
     def list_cameras(self) -> list[CameraBase]:
         return [BaslerCamera(), BuiltInCamera()]
-
-    # def connect_camera(self, camera_idx):
-    #     camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[camera_idx]))
-    #     return camera
-
-    # def disconnect_camera(self, camera):
-    #     if camera.IsGrabbing():
-    #         camera.StopGrabbing()
-
-    #     camera.Close()
-    #     camera.DestroyDevice()
 
     def initUI(self):
         self.setWindowTitle("μFocus")
@@ -909,10 +896,10 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def stop_capture(self):
-        self.worker.camera.camera.StopGrabbing()
-        # self.worker.camera.Close()
-        # print("Finished")
-        # self.worker.signals.finished.emit()
+        if isinstance(self.camera, BaslerCamera):
+            self.worker.camera.StopGrabbing()
+        else:
+            self.worker.camera.release()
 
     @Slot()
     def get_single_image(self):

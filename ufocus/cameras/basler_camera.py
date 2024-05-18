@@ -6,13 +6,10 @@ from typing import Optional
 from pypylon import pylon
 
 from cameras.camera_base import CameraBase
+from cameras.exceptions import CameraConnectionError
 from workers.basler_camera_worker import BaslerCameraWorker
 
 logger = logging.getLogger(__name__)
-
-
-class CameraConnectionError(Exception):
-    pass
 
 
 class BaslerCamera(CameraBase):
@@ -20,16 +17,8 @@ class BaslerCamera(CameraBase):
     def __init__(self):
         super().__init__()
         self.factory: pylon.TlFactory = pylon.TlFactory.GetInstance()
-        self.devices = self.list_cameras()
+        self.devices = self.factory.EnumerateDevices()
         self.camera: Optional[pylon.InstantCamera] = None
-
-    def list_cameras(self) -> tuple:
-        devices: tuple = self.factory.EnumerateDevices()
-        if devices:
-            logger.info("Camera devices found")
-        else:
-            logger.warning("No camera devices found")
-        return devices
 
     def configure(self) -> None:
         self.camera.PixelFormat.SetValue("Mono8")
@@ -38,8 +27,7 @@ class BaslerCamera(CameraBase):
 
     def reset(self) -> None:
         if self.camera.IsOpen():
-            if self.camera.IsGrabbing():
-                self.camera.StopGrabbing()
+            self.stop()
 
             # Retrieve default settings
             self.camera.UserSetSelector.SetValue("Default")
@@ -55,6 +43,8 @@ class BaslerCamera(CameraBase):
             )
             self.camera.Open()
         except pylon.RuntimeException:
+            raise CameraConnectionError
+        except IndexError as e:
             raise CameraConnectionError
         else:
             self.is_connected = True

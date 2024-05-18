@@ -1,0 +1,2 @@
+class CameraConnectionError(Exception):
+    pass

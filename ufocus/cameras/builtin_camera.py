@@ -5,13 +5,10 @@ from typing import Optional
 from cv2 import VideoCapture, error
 
 from cameras.camera_base import CameraBase
+from cameras.exceptions import CameraConnectionError
 from workers.builtin_camera_worker import BuiltInCameraWorker
 
 logger = logging.getLogger(__name__)
-
-
-class CameraConnectionError(Exception):
-    pass
 
 
 class BuiltInCamera(CameraBase):

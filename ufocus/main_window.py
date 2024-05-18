@@ -21,8 +21,9 @@ from PySide6.QtWidgets import (
 import serial
 from serial.tools.list_ports import comports
 
-from cameras.basler_camera import BaslerCamera, CameraConnectionError
-from cameras.builtin_camera import BuiltInCamera, CameraConnectionError
+from cameras.basler_camera import BaslerCamera
+from cameras.builtin_camera import BuiltInCamera
+from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing import ImageProcessing
@@ -1240,7 +1241,7 @@ class MainWindow(QMainWindow):
                     pass
                 self.actionResetCamera.setEnabled(True)
         else:
-            if self.camera is not None:
+            if self.camera.camera is not None:
                 self.stop_capture()
                 self.camera.disconnect()
                 self.comboboxCamera.setEnabled(True)

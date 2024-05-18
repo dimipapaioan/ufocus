@@ -724,6 +724,8 @@ class LiveCameraFeedWidget(QGraphicsView):
         self.pts_scan_x16 = []
         self.draw_scan_x40 = False
         self.draw_scan_x16 = False
+        self.pen_width = None
+        self.font_width = None
         
         self.setMinimumSize(642, 482)
         self.setSizePolicy(
@@ -751,11 +753,14 @@ class LiveCameraFeedWidget(QGraphicsView):
     def drawRegions(self, pixmap: QPixmap) -> QPixmap:
         if self.roi_draw or self.draw_crosshair_x40 or self.draw_crosshair_x16 or self.draw_scan_x40 or self.draw_scan_x16:
             with QPainter(pixmap) as painter:
+                if self.pen_width is None or self.font_width is None:
+                    self.pen_width = round(self.parent.camera.width * 0.004)
+                    self.font_width = round(self.parent.camera.width * 0.015)
                 painter.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing)
                 pen = painter.pen()
-                pen.setWidth(5)
+                pen.setWidth(self.pen_width)
                 font = painter.font()
-                font.setPointSize(33)
+                font.setPointSize(self.font_width)
                 painter.setFont(font)
 
                 if self.p_i and self.p_f and self.roi_draw:
@@ -774,21 +779,21 @@ class LiveCameraFeedWidget(QGraphicsView):
         pen.setColor(QColor(0, 255, 0))
         painter.setPen(pen)
         painter.drawRect(self.p_i.x(), self.p_i.y(), self.p_f.x() - self.p_i.x(), self.p_f.y() - self.p_i.y())
-        painter.drawText(self.p_i.x() + 10, self.p_i.y() - 20, "ROI")
+        painter.drawText(self.p_i.x() + 1.5 * self.pen_width, self.p_i.y() - self.font_width, "ROI")
 
     def drawCrosshairX40(self, painter: QPainter, pen: QPen) -> None:
         pen.setColor(QColor(255, 0, 255))
         painter.setPen(pen)
-        painter.drawLine(0, self.p_cross_x40.y(), self.parent.camera_width, self.p_cross_x40.y())
-        painter.drawLine(self.p_cross_x40.x(), 0, self.p_cross_x40.x(), self.parent.camera_height)
-        painter.drawText(self.p_cross_x40.x() + 10, 35, "x40")
+        painter.drawLine(0, self.p_cross_x40.y(), self.parent.camera.width, self.p_cross_x40.y())
+        painter.drawLine(self.p_cross_x40.x(), 0, self.p_cross_x40.x(), self.parent.camera.height)
+        painter.drawText(self.p_cross_x40.x() + 1.5 * self.pen_width, self.font_width + 5, "x40")
 
     def drawCrosshairX16(self, painter: QPainter, pen: QPen) -> None:
         pen.setColor(QColor(255, 0, 0))
         painter.setPen(pen)
-        painter.drawLine(0, self.p_cross_x16.y(), self.parent.camera_width, self.p_cross_x16.y())
-        painter.drawLine(self.p_cross_x16.x(), 0, self.p_cross_x16.x(), self.parent.camera_height)
-        painter.drawText(self.p_cross_x16.x() + 10, 35, "x16")
+        painter.drawLine(0, self.p_cross_x16.y(), self.parent.camera.width, self.p_cross_x16.y())
+        painter.drawLine(self.p_cross_x16.x(), 0, self.p_cross_x16.x(), self.parent.camera.height)
+        painter.drawText(self.p_cross_x16.x() + 1.5 * self.pen_width, self.font_width + 5, "x16")
 
     def drawScanRegionX40(self, painter: QPainter, pen: QPen) -> None:
         pen.setColor(QColor(255, 255, 0))
@@ -798,7 +803,7 @@ class LiveCameraFeedWidget(QGraphicsView):
         else:
             polygon = QPolygon(self.pts_scan_x40)
             painter.drawPolygon(polygon)
-            painter.drawText(polygon.boundingRect().topLeft() + QPoint(10, -20), "Scan x40")
+            painter.drawText(polygon.boundingRect().topLeft() + QPoint(2 * self.pen_width, -self.font_width), "Scan x40")
 
     def drawScanRegionX16(self, painter: QPainter, pen: QPen) -> None:
         pen.setColor(QColor("orange"))
@@ -808,7 +813,7 @@ class LiveCameraFeedWidget(QGraphicsView):
         else:
             polygon = QPolygon(self.pts_scan_x16)
             painter.drawPolygon(self.pts_scan_x16)
-            painter.drawText(polygon.boundingRect().topLeft() + QPoint(10, -20), "Scan x16")
+            painter.drawText(polygon.boundingRect().topLeft() + QPoint(2 * self.pen_width, -self.font_width), "Scan x16")
 
     def resizeEvent(self, event):
         self.scene().setSceneRect(self.scene().itemsBoundingRect())

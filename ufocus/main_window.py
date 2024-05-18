@@ -985,7 +985,7 @@ class MainWindow(QMainWindow):
                 self.imageProcessingWorker = ImageProcessing(self)
 
                 # Connect the signal from the camera worker directly to the image processing function
-                self.worker.handler.progress.connect(self.imageProcessingWorker.imageProcessing)
+                self.worker.signals.progress.connect(self.imageProcessingWorker.imageProcessing)
                 self.spinboxImagesToAccumulate.valueChanged.connect(self.imageProcessingWorker.setNumberOfImagesToAccumulate)
                 self.spinboxGaussianKernel.valueChanged.connect(self.imageProcessingWorker.setGaussianKernel)
                 self.spinboxThreshold.valueChanged.connect(self.imageProcessingWorker.setThreshold)
@@ -999,7 +999,7 @@ class MainWindow(QMainWindow):
         else:
             if hasattr(self, 'worker') and hasattr(self, 'imageProcessingWorker'):
                 if self.imageProcessingWorker.eventloop.isRunning():
-                    self.worker.handler.progress.disconnect(self.imageProcessingWorker.imageProcessing)
+                    self.worker.signals.progress.disconnect(self.imageProcessingWorker.imageProcessing)
                     self.imageProcessingWorker.eventloop.exit()
 
     def imageProcessingErrorDialog(self):

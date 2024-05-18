@@ -75,9 +75,9 @@ class ImageProcessing(QRunnable):
         self.numberOfRuns: int = self.determine_run()
         self.image_data_path = DATA_PATH / f'run_{self.numberOfRuns:02}' / 'images'
         self.inAccumulation: bool = True
-        self.accumulator = zeros((self.parent.camera_height, self.parent.camera_width))
-        self.profile_vertical = zeros((1, self.parent.camera_width))
-        self.profile_horizontal = zeros((self.parent.camera_height, 1))
+        self.accumulator = zeros((self.parent.camera.height, self.parent.camera.width))
+        self.profile_vertical = zeros((1, self.parent.camera.width))
+        self.profile_horizontal = zeros((self.parent.camera.height, 1))
         self.numberOfImagesToAccumulate = self.parent.spinboxImagesToAccumulate.value()
         self.applyGaussianFiltering = self.parent.checkboxGaussianFiltering.isChecked()
         self.kernelGaussianFiltering = (self.parent.spinboxGaussianKernel.value(), self.parent.spinboxGaussianKernel.value())
@@ -101,6 +101,10 @@ class ImageProcessing(QRunnable):
             if self.skippedImages != 0:
                 logger.info(f"Skipped {self.skippedImages} images")
                 self.skippedImages = 0
+            
+            # if the image is not in grayscale, convert it 
+            if image.ndim > 2:
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
             # Configure ROI
             if self.parent.video_label.roi:
@@ -117,13 +121,13 @@ class ImageProcessing(QRunnable):
                     self.profile_horizontal = zeros((y2 - y1, 1))
             else:
                 if self.accumulatedImages == 0:
-                    self.accumulator = zeros((self.parent.camera_height, self.parent.camera_width))
-                    self.profile_vertical = zeros((1, self.parent.camera_width))
-                    self.profile_horizontal = zeros((self.parent.camera_height, 1))
+                    self.accumulator = zeros((self.parent.camera.height, self.parent.camera.width))
+                    self.profile_vertical = zeros((1, self.parent.camera.width))
+                    self.profile_horizontal = zeros((self.parent.camera.height, 1))
 
             self.accumulatedImages += 1
             # print(f'Accumulated {self.accumulatedImages} images.', end='\r')
-
+            
             try:
                 cv2.accumulate(image, self.accumulator)
             except cv2.error:

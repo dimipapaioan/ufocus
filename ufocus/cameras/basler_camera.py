@@ -6,6 +6,7 @@ from typing import Optional
 from pypylon import pylon
 
 from cameras.camera_base import CameraBase
+from workers.basler_camera_worker import BaslerCameraWorker
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,9 @@ class BaslerCamera(CameraBase):
 
         self.camera.Close()
         self.camera.DestroyDevice()
+
+    def get_worker(self, parent):
+        return BaslerCameraWorker(self.camera, parent)
 
     def start(self):
         pass

@@ -5,6 +5,7 @@ from typing import Optional
 from cv2 import VideoCapture, error
 
 from cameras.camera_base import CameraBase
+from workers.builtin_camera_worker import BuiltInCameraWorker
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class BuiltInCamera(CameraBase):
     def __init__(self):
         super().__init__()
         self.camera: Optional[VideoCapture] = None
-    
+
     def configure(self) -> None:
         self.width = 640
         self.height = 480
@@ -36,6 +37,9 @@ class BuiltInCamera(CameraBase):
         if self.camera.isOpened():
             self.camera.release()
         self.camera = None
+
+    def get_worker(self, parent):
+        return BuiltInCameraWorker(self.camera, parent)
 
     def start(self):
         pass

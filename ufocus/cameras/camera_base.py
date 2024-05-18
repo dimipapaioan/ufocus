@@ -21,6 +21,9 @@ class CameraBase(ABC):
     def disconnect(self): ...
 
     @abstractmethod
+    def get_worker(self): ...
+
+    @abstractmethod
     def start(self): ...
 
     @abstractmethod

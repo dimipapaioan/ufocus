@@ -23,9 +23,6 @@ from serial.tools.list_ports import comports
 
 from cameras.basler_camera import BaslerCamera, CameraConnectionError
 from cameras.builtin_camera import BuiltInCamera, CameraConnectionError
-from cameras.camera_base import CameraBase
-from workers.basler_camera_worker import BaslerCameraWorker
-from workers.builtin_camera_worker import BuiltInCameraWorker
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing import ImageProcessing
@@ -114,7 +111,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        self.devices: list[CameraBase] = self.list_cameras()
+        self.devices: list = self.list_cameras()
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
         self.initUI()
@@ -167,7 +164,7 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self) -> list[CameraBase]:
+    def list_cameras(self) -> list:
         return [BaslerCamera(), BuiltInCamera()]
 
     def initUI(self):
@@ -849,10 +846,7 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            if isinstance(self.camera, BaslerCamera):
-                self.worker = BaslerCameraWorker(self.camera.camera, self)
-            else:
-                self.worker = BuiltInCameraWorker(self.camera.camera, self)
+            self.worker = self.camera.get_worker(self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:

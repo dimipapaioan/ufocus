@@ -12,6 +12,9 @@ class CameraBase(ABC):
         self.height: Optional[int] = None
 
     @abstractmethod
+    def configure(self): ...
+
+    @abstractmethod
     def connect(self): ...
 
     @abstractmethod

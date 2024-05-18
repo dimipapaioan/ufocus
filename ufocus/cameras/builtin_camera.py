@@ -44,5 +44,5 @@ class BuiltInCamera(CameraBase):
     def start(self):
         pass
 
-    def stop(self):
-        pass
+    def stop(self) -> None:
+        self.camera.release()

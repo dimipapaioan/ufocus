@@ -242,7 +242,6 @@ class MainWindow(QMainWindow):
 
         self.close_button = QPushButton("Stop", self)
         self.close_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.close_button.clicked.connect(self.stop_capture)
         self.close_button.setEnabled(False)
 
         self.single_button = QPushButton("Single", self)
@@ -890,10 +889,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def stop_capture(self):
-        if isinstance(self.camera, BaslerCamera):
-            self.worker.camera.StopGrabbing()
-        else:
-            self.worker.camera.release()
+        self.camera.stop()
 
     @Slot()
     def get_single_image(self):
@@ -1248,6 +1244,7 @@ class MainWindow(QMainWindow):
                 self.connectionButtonCamera.setText("Disconnect")
                 self.camera.configure()
                 self.event_filter.setCameraWidthAndHeight((self.camera.width, self.camera.height))
+                self.close_button.clicked.connect(self.stop_capture)
 
                 try:
                     self.updateCameraParameters()
@@ -1256,11 +1253,7 @@ class MainWindow(QMainWindow):
                 self.actionResetCamera.setEnabled(True)
         else:
             if self.camera is not None:
-                if isinstance(self.camera, BaslerCamera):
-                    if self.camera.camera.IsGrabbing():
-                        self.stop_capture()
-                else:
-                    self.camera.camera.release()
+                self.stop_capture()
                 self.camera.disconnect()
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")

@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class CameraConnectionError(Exception):
     pass
 
+
 class BaslerCamera(CameraBase):
 
     def __init__(self):
@@ -48,7 +49,9 @@ class BaslerCamera(CameraBase):
 
     def connect(self, idx: int = 0) -> None:
         try:
-            self.camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[idx]))
+            self.camera = pylon.InstantCamera(
+                self.factory.CreateDevice(self.devices[idx])
+            )
             self.camera.Open()
         except pylon.RuntimeException:
             raise CameraConnectionError

@@ -15,8 +15,8 @@ class EventFilter(QObject):
     def __init__(self, widget):
         super().__init__(widget)
         self.widget = widget
-        self.camera_width = 2448
-        self.camera_height = 2048
+        self.camera_width = None
+        self.camera_height = None
         self.widget.scene().installEventFilter(self)
         self.widget.setMouseTracking(True)
         self.settings_manager = SettingsManager()

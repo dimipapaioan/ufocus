@@ -2,9 +2,15 @@
 
 import logging.config
 
-from dirs import BASE_PATH, BASE_DATA_PATH, LOGS_PATH, create_dir
+from dirs import (
+    BASE_PATH,
+    BASE_DATA_PATH,
+    LOGS_PATH,
+    PLUGIN_PATH_CAMERA,
+    create_dir,
+)
 
-for path in (BASE_PATH, BASE_DATA_PATH, LOGS_PATH):
+for path in (BASE_PATH, BASE_DATA_PATH, LOGS_PATH, PLUGIN_PATH_CAMERA):
     create_dir(path)
 
 from logging_config import LOGGING_CONFIG

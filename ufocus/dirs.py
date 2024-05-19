@@ -4,7 +4,7 @@ from pathlib import Path
 
 BASE_PATH: Path = Path.home() / "Documents" / "uFocus"
 BASE_DATA_PATH: Path = BASE_PATH / "data"
-LOGS_PATH : Path = BASE_PATH / "logs"
+LOGS_PATH: Path = BASE_PATH / "logs"
 PLUGIN_PATH_CAMERA = BASE_PATH / "extensions"
 
 

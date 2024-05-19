@@ -23,7 +23,6 @@ from serial.tools.list_ports import comports
 
 from cameras.camera_base import Camera
 from cameras.basler_camera import BaslerCamera
-# from cameras.builtin_camera import BuiltInCamera
 from cameras.camera_manager import CameraPluginManager
 from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH, PLUGIN_PATH_CAMERA

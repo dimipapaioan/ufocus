@@ -8,6 +8,7 @@ class CameraBase(ABC):
 
     def __init__(self) -> None:
         super().__init__()
+        self.camera = None
         self.width: Optional[int] = None
         self.height: Optional[int] = None
         self.is_connected: bool = False

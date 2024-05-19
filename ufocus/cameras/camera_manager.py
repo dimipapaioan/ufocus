@@ -16,10 +16,12 @@ class CameraPluginManager:
 
     def load_metadata(self):
         json_file = self.path / "extensions.json"
-        with json_file.open() as file:
-            plugin_data = json.load(file)
-        logger.info(f"Found available plugins for the system: {plugin_data['plugins']}")
-        return plugin_data["plugins"]
+        if json_file.exists():
+            with json_file.open() as file:
+                plugin_data = json.load(file)
+            logger.info(f"Found available plugins for the system: {plugin_data['plugins']}")
+            return plugin_data["plugins"]
+        return []
 
     def load_plugin(self, plugin_path: Path):
         spec = spec_from_file_location(plugin_path.name, plugin_path)

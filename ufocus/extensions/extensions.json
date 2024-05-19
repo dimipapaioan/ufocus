@@ -1,0 +1,9 @@
+{
+    "plugins": [
+        {
+            "name": "Web Camera (OpenCV)",
+            "class": "BuiltInCamera",
+            "description": "Use the plugin system to use the built-in camera."
+        }
+    ]
+}

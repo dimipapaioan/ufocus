@@ -23,9 +23,10 @@ from serial.tools.list_ports import comports
 
 from cameras.camera_base import Camera
 from cameras.basler_camera import BaslerCamera
-from cameras.builtin_camera import BuiltInCamera
+# from cameras.builtin_camera import BuiltInCamera
+from cameras.camera_manager import CameraPluginManager
 from cameras.exceptions import CameraConnectionError
-from dirs import BASE_PATH
+from dirs import BASE_PATH, PLUGIN_PATH_CAMERA
 from event_filter import EventFilter
 from image_processing import ImageProcessing
 from minimizer import Minimizer
@@ -167,10 +168,13 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self) -> list[Camera]:
-        # This method will be modified once the extension architecture is implemented
-        # For now just directly initialize the Camera objects
-        return [BaslerCamera, BuiltInCamera]
+    def list_cameras(self) -> list:
+        devices: list = [BaslerCamera]
+        plugins = self.plugin_manager.discover_plugins()
+        metadata = self.plugin_manager.load_metadata()
+        for plugin, item in zip(plugins, metadata):
+            devices.append(getattr(plugin, item["class"]))
+        return devices
 
     def initUI(self):
         self.setWindowTitle("μFocus")

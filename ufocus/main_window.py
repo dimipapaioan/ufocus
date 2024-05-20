@@ -167,12 +167,17 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self) -> list:
-        devices: list = [BaslerCamera]
+    def list_cameras(self) -> list[dict]:
+        devices: list[dict] = [{"name": "Basler ace2 Camera" , "class": BaslerCamera}]
         plugins = self.plugin_manager.discover_plugins()
         metadata = self.plugin_manager.load_metadata()
         for plugin, item in zip(plugins, metadata):
-            devices.append(getattr(plugin, item["class"]))
+            devices.append(
+                {
+                    "name": item["name"],
+                    "class": getattr(plugin, item["class"])
+                }
+            )
         return devices
 
     def initUI(self):
@@ -572,7 +577,7 @@ class MainWindow(QMainWindow):
 
         if self.devices:
             for device in self.devices:
-                self.comboboxCamera.addItem(device.__name__)
+                self.comboboxCamera.addItem(device["name"])
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
             self.connectionButtonCamera.setEnabled(False)
@@ -1222,7 +1227,7 @@ class MainWindow(QMainWindow):
         if checked:
             try:
                 index: int = self.comboboxCamera.currentIndex()
-                self.camera = self.devices[index]()
+                self.camera = self.devices[index]["class"]()
                 self.camera.connect(index)
             except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)

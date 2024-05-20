@@ -18,6 +18,8 @@ DEFAULT_SETTINGS = {
     "spinboxFATol": 6,
     "spinboxMaxIter": 100,
     "spinboxMaxFEval": 100,
+    "comboboxSerial": 0,
+    "comboboxCamera": 0,
     "p_i": None,
     "p_f": None,
     "roi": False,
@@ -119,7 +121,7 @@ class SettingsManager(metaclass=SettingsManagerMeta):
         else:
             logger.info("Using the default settings")
             with open(f"{BASE_PATH}/user_settings.json", "w") as file:
-                json.dump(DEFAULT_SETTINGS, file, cls=JSONSpecialEncoder)
+                json.dump(DEFAULT_SETTINGS, file, cls=JSONSpecialEncoder, indent=4)
             return DEFAULT_SETTINGS.copy()
 
     def setUserValues(self):
@@ -141,4 +143,4 @@ class SettingsManager(metaclass=SettingsManagerMeta):
 
     def saveUserSettings(self):
         with open(f"{BASE_PATH}/user_settings.json", "w") as file:
-            json.dump(self.user_settings, file, cls=JSONSpecialEncoder)
+            json.dump(self.user_settings, file, cls=JSONSpecialEncoder, indent=4)

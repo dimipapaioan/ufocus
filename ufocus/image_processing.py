@@ -193,14 +193,7 @@ class ImageProcessing(QRunnable):
                         detected_ellipse = DetectedEllipse(*ellipse[0], *ellipse[1], ellipse[2])
                         cv2.ellipse(im_copy, ellipse, (255, 255, 255), 2)
 
-                        logger.info(
-                            f'### Detected ellipse ###\n'
-                            f'area: {area:.2f} px^2\n'
-                            f'major: {detected_ellipse.major:.4f} px\n'
-                            f'minor: {detected_ellipse.minor:.4f} px\n'
-                            f'circ: {detected_ellipse.circularity:.4f}\n'
-                            f'ecc: {detected_ellipse.eccentricity:.4f}'
-                        )
+                        logger.info(detected_ellipse)
 
                 self.signals.imageProcessingDone.emit(im_copy)
                 try:

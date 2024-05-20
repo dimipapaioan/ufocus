@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
     def list_cameras(self) -> list:
         # This method will be modified once the extension architecture is implemented
         # For now just directly initialize the Camera objects
-        return [BaslerCamera(), BuiltInCamera()]
+        return [BaslerCamera, BuiltInCamera]
 
     def initUI(self):
         self.setWindowTitle("μFocus")
@@ -568,7 +568,7 @@ class MainWindow(QMainWindow):
 
         if self.devices:
             for device in self.devices:
-                self.comboboxCamera.addItem(device.__class__.__name__)
+                self.comboboxCamera.addItem(device.__name__)
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
             self.connectionButtonCamera.setEnabled(False)
@@ -1218,8 +1218,8 @@ class MainWindow(QMainWindow):
         if checked:
             try:
                 index = self.comboboxCamera.currentIndex()
-                self.camera = self.devices[index]
-                self.camera.connect(self.comboboxCamera.currentIndex())
+                self.camera = self.devices[index]()
+                self.camera.connect(index)
             except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)
                 logger.error("Could not connect to camera")

@@ -1249,6 +1249,7 @@ class MainWindow(QMainWindow):
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")
                 self.actionResetCamera.setEnabled(False)
+                self.camera = None
     
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(

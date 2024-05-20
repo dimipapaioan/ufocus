@@ -552,7 +552,6 @@ class MainWindow(QMainWindow):
         if self.ports:
             for port in self.ports:
                 self.comboboxSerial.addItem(port.description)
-            self.comboboxSerial.setCurrentIndex(0)
         else:
             self.comboboxSerial.setPlaceholderText("No serial ports found...")
             self.connectionButtonSerial.setEnabled(False)
@@ -570,7 +569,6 @@ class MainWindow(QMainWindow):
         if self.devices:
             for device in self.devices:
                 self.comboboxCamera.addItem(device.__class__.__name__)
-            self.comboboxSerial.setCurrentIndex(1)
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
             self.connectionButtonCamera.setEnabled(False)
@@ -1121,22 +1119,26 @@ class MainWindow(QMainWindow):
 
     # TODO This could be removed, it is kept for logging purposes
     @Slot()
-    def selectionSerialChanged(self):
+    def selectionSerialChanged(self, index):
         logger.debug(
             f'Serial port selection changed.\n'
             f'index: {self.comboboxSerial.currentIndex()}\n'
             f'port: {self.comboboxSerial.currentText()}\n'
             f'name: {self.ports[self.comboboxSerial.currentIndex()].name}\n'
         )
+        self.settings_manager.user_settings.update({"comboboxSerial": index})
+        self.settings_manager.saveUserSettings()
 
     # TODO This could be removed, it is kept for logging purposes
     @Slot()
-    def selectionCameraChanged(self):
+    def selectionCameraChanged(self, index):
         logger.debug(
             f'Camera selection changed.\n'
             f'index: {self.comboboxCamera.currentIndex()}\n'
             f'camera: {self.comboboxCamera.currentText()}\n'
         )
+        self.settings_manager.user_settings.update({"comboboxCamera": index})
+        self.settings_manager.saveUserSettings()
 
     @Slot()
     def onSerialChecked(self, checked):

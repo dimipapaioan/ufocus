@@ -30,6 +30,8 @@ DEFAULT_SETTINGS = {
     "pts_scan_x16": [],
     "draw_scan_x40": False,
     "draw_scan_x16": False,
+    "comboboxSerial": 0,
+    "comboboxCamera": 0,
 }
 
 SETTINGS_T1 = (
@@ -45,6 +47,11 @@ SETTINGS_T1 = (
     "pts_scan_x16",
     "draw_scan_x40",
     "draw_scan_x16",
+)
+
+SETTINGS_T2 = (
+    "comboboxSerial",
+    "comboboxCamera",
 )
 
 logger = logging.getLogger(__name__)
@@ -94,6 +101,9 @@ class SettingsManager(metaclass=SettingsManagerMeta):
         for key, value in DEFAULT_SETTINGS.items():
             if key in SETTINGS_T1:
                 setattr(self.parent.video_label, key, value)
+            elif key in SETTINGS_T2:
+                atr = getattr(self.parent, key)
+                atr.setCurrentIndex(value)
             else:
                 atr = getattr(self.parent, key)
                 atr.setValue(value)
@@ -117,6 +127,9 @@ class SettingsManager(metaclass=SettingsManagerMeta):
             for key, value in self.user_settings.items():
                 if key in SETTINGS_T1:
                     setattr(self.parent.video_label, key, value)
+                elif key in SETTINGS_T2:
+                    atr = getattr(self.parent, key)
+                    atr.setCurrentIndex(value)
                 else:
                     atr = getattr(self.parent, key)
                     atr.setValue(value)

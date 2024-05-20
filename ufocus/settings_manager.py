@@ -125,14 +125,17 @@ class SettingsManager(metaclass=SettingsManagerMeta):
     def setUserValues(self):
         if self.user_settings is not None:
             for key, value in self.user_settings.items():
-                if key in SETTINGS_T1:
-                    setattr(self.parent.video_label, key, value)
-                elif key in SETTINGS_T2:
-                    atr = getattr(self.parent, key)
-                    atr.setCurrentIndex(value)
-                else:
-                    atr = getattr(self.parent, key)
-                    atr.setValue(value)
+                try:
+                    if key in SETTINGS_T1:
+                        setattr(self.parent.video_label, key, value)
+                    elif key in SETTINGS_T2:
+                        atr = getattr(self.parent, key)
+                        atr.setCurrentIndex(value)
+                    else:
+                        atr = getattr(self.parent, key)
+                        atr.setValue(value)
+                except AttributeError:
+                    logger.warning(f"An error occured while setting attribute {key}, ignoring it for now")
         else:
             self.setDefaultValues()
 

@@ -18,8 +18,6 @@ DEFAULT_SETTINGS = {
     "spinboxFATol": 6,
     "spinboxMaxIter": 100,
     "spinboxMaxFEval": 100,
-    "comboboxSerial": 0,
-    "comboboxCamera": 0,
     "p_i": None,
     "p_f": None,
     "roi": False,

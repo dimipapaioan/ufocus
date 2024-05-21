@@ -552,7 +552,7 @@ class PlottingWidget(QWidget):
                 ):
                 writer.writerow([row, *line])
         
-        result = QMessageBox.information(
+        QMessageBox.information(
             self,
             "Data saved",
             f'Data were successfully saved to {filename}.',

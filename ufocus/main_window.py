@@ -351,11 +351,11 @@ class MainWindow(QMainWindow):
         self.setupMainStatusBar()
 
         # Set the layout
-        self.tab1.layout = QVBoxLayout()
-        self.tab1.layout.addWidget(self.toolbarVideoLabel)
-        self.tab1.layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
-        self.tab1.layout.addWidget(self.status_bar)
-        self.tab1.setLayout(self.tab1.layout)
+        self.tab1_layout = QVBoxLayout()
+        self.tab1_layout.addWidget(self.toolbarVideoLabel)
+        self.tab1_layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
+        self.tab1_layout.addWidget(self.status_bar)
+        self.tab1.setLayout(self.tab1_layout)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.start_button)
@@ -531,7 +531,7 @@ class MainWindow(QMainWindow):
             self.actionZoomRestore.setIcon(QIcon(pixmaps[3]))
             self.actionSaveImageAs.setIcon(QIcon(pixmaps[4]))
         else:
-            self.tab1.setLayout(self.tab1.layout)
+            self.tab1.setLayout(self.tab1_layout)
             self.actionOpenInFullScreen.setIcon(QIcon(QPixmap(":/icons/expand-solid.svg")))
             self.actionOpenInFullScreen.setToolTip("FullScreen")
             self.actionZoomIn.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-plus-solid.svg")))

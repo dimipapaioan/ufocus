@@ -113,6 +113,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
+        self.plugin_manager = CameraPluginManager(PLUGIN_PATH_CAMERA)
         self.devices: list[Camera] = self.list_cameras()
         self.camera: Optional[Camera] = None
         self.threadpool = QThreadPool(self)

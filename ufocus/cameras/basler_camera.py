@@ -5,14 +5,14 @@ from typing import Optional
 
 from pypylon import pylon
 
-from cameras.camera_base import CameraBase
+from cameras.camera_base import Camera
 from cameras.exceptions import CameraConnectionError
 from workers.basler_camera_worker import BaslerCameraWorker
 
 logger = logging.getLogger(__name__)
 
 
-class BaslerCamera(CameraBase):
+class BaslerCamera(Camera):
 
     def __init__(self):
         super().__init__()

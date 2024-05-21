@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 import serial
 from serial.tools.list_ports import comports
 
+from cameras.camera_base import Camera
 from cameras.basler_camera import BaslerCamera
 from cameras.builtin_camera import BuiltInCamera
 from cameras.exceptions import CameraConnectionError
@@ -112,8 +113,8 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        self.devices: list = self.list_cameras()
-        self.camera = None
+        self.devices: list[Camera] = self.list_cameras()
+        self.camera: Optional[Camera] = None
         self.threadpool = QThreadPool(self)
         self.settings_manager = SettingsManager(self)
         self.initUI()
@@ -166,7 +167,7 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self) -> list:
+    def list_cameras(self) -> list[Camera]:
         # This method will be modified once the extension architecture is implemented
         # For now just directly initialize the Camera objects
         return [BaslerCamera, BuiltInCamera]
@@ -669,21 +670,21 @@ class MainWindow(QMainWindow):
     @Slot()
     def setCameraExposureTime(self, value):
         try:
-            self.camera.ExposureTime.SetValue(value)
+            self.camera.camera.ExposureTime.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the exposure time, no camera connected in the system")
 
     @Slot()
     def setCameraGain(self, value):
         try:
-            self.camera.Gain.SetValue(value)
+            self.camera.camera.Gain.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the gain, no camera connected in the system")
 
     @Slot()
     def setCameraContrast(self, value):
         try:
-            self.camera.BslContrast.SetValue(value)
+            self.camera.camera.BslContrast.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the contrast, no camera connected in the system")
 
@@ -896,7 +897,7 @@ class MainWindow(QMainWindow):
         #     self.camera.StopGrabbing()
         try:
             self.temp_img = pylon.PylonImage()
-            with self.camera.GrabOne(11000) as grab:
+            with self.camera.camera.GrabOne(11000) as grab:
                 self.temp_img.AttachGrabResultBuffer(grab)
                 # self.temp_img = pylon.PylonImage(grab)
                 img = grab.GetArray()
@@ -1217,7 +1218,7 @@ class MainWindow(QMainWindow):
     def onCameraChecked(self, checked):
         if checked:
             try:
-                index = self.comboboxCamera.currentIndex()
+                index: int = self.comboboxCamera.currentIndex()
                 self.camera = self.devices[index]()
                 self.camera.connect(index)
             except CameraConnectionError:
@@ -1253,23 +1254,23 @@ class MainWindow(QMainWindow):
     
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(
-            self.camera.ExposureTime.Min,
-            self.camera.ExposureTime.Max
+            self.camera.camera.ExposureTime.Min,
+            self.camera.camera.ExposureTime.Max
         )
         # self.camera.ExposureTime.SetValue(30_000.0)
         self.spinboxExposureTime.setValue(self.camera.ExposureTime.GetValue())
 
         self.sliderGain.setRange(
-            self.camera.Gain.Min,
-            self.camera.Gain.Max
+            self.camera.camera.Gain.Min,
+            self.camera.camera.Gain.Max
         )
         self.spinboxGain.setValue(self.camera.Gain.GetValue())
 
         self.sliderContrast.setRange(
-            self.camera.BslContrast.Min * 100,
-            self.camera.BslContrast.Max * 100
+            self.camera.camera.BslContrast.Min * 100,
+            self.camera.camera.BslContrast.Max * 100
         )
-        self.spinboxContrast.setValue(self.camera.BslContrast.GetValue())
+        self.spinboxContrast.setValue(self.camera.camera.BslContrast.GetValue())
 
     def closeEvent(self, event):
         result = QMessageBox.question(

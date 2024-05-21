@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class CameraBase(ABC):
+class Camera(ABC):
 
     def __init__(self) -> None:
         super().__init__()

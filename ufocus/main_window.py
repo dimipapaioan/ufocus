@@ -1241,7 +1241,7 @@ class MainWindow(QMainWindow):
                 try:
                     self.updateCameraParameters()
                 except AttributeError:
-                    pass
+                    logger.warning("Reading and setting parameters is not supported for the connected camera, ignoring")
                 self.actionResetCamera.setEnabled(True)
         else:
             if self.camera.camera is not None:
@@ -1258,13 +1258,13 @@ class MainWindow(QMainWindow):
             self.camera.camera.ExposureTime.Max
         )
         # self.camera.ExposureTime.SetValue(30_000.0)
-        self.spinboxExposureTime.setValue(self.camera.ExposureTime.GetValue())
+        self.spinboxExposureTime.setValue(self.camera.camera.ExposureTime.GetValue())
 
         self.sliderGain.setRange(
             self.camera.camera.Gain.Min,
             self.camera.camera.Gain.Max
         )
-        self.spinboxGain.setValue(self.camera.Gain.GetValue())
+        self.spinboxGain.setValue(self.camera.camera.Gain.GetValue())
 
         self.sliderContrast.setRange(
             self.camera.camera.BslContrast.Min * 100,

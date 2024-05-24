@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Optional
+from typing import Optional, Union
 
 from pypylon import pylon
 from PySide6.QtCore import (
@@ -60,6 +60,7 @@ CUSTOM_STYLESHEET = """
         background-color: lightgrey;
         color: black;
     }
+
     FullScreenWindow {
         background-color: black;
         padding: 2%;
@@ -113,9 +114,9 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        self.devices: list[Camera] = self.list_cameras()
+        self.devices = self.list_cameras()
         self.camera: Optional[Camera] = None
-        self.threadpool = QThreadPool(self)
+        self.threadpool = QThreadPool.globalInstance()
         self.settings_manager = SettingsManager(self)
         self.initUI()
         self.settings_manager.setUserValues()
@@ -167,10 +168,20 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self) -> list[Camera]:
+    def list_cameras(self) -> list[dict[str, Union[str, Camera]]]:
         # This method will be modified once the extension architecture is implemented
-        # For now just directly initialize the Camera objects
-        return [BaslerCamera, BuiltInCamera]
+        # For now just return a list with the supported Camera objects
+        supported_cameras = [
+            {
+                "name": "Basler ace2",
+                "class": BaslerCamera,
+            },
+            {
+                "name": "Generic (OpenCV)",
+                "class": BuiltInCamera,
+            }
+        ]
+        return supported_cameras
 
     def initUI(self):
         self.setWindowTitle("μFocus")
@@ -569,7 +580,7 @@ class MainWindow(QMainWindow):
 
         if self.devices:
             for device in self.devices:
-                self.comboboxCamera.addItem(device.__name__)
+                self.comboboxCamera.addItem(device["name"])
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
             self.connectionButtonCamera.setEnabled(False)
@@ -1219,7 +1230,7 @@ class MainWindow(QMainWindow):
         if checked:
             try:
                 index: int = self.comboboxCamera.currentIndex()
-                self.camera = self.devices[index]()
+                self.camera = self.devices[index]["class"]()
                 self.camera.connect(index)
             except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)

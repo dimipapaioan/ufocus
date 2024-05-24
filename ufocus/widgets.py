@@ -256,6 +256,7 @@ class HistogramsWidget(QWidget):
         self.graph3.showAxes(True)
         self.graph3.setTitle("ROI Histogram")
         self.graph3.setLabels(left="Counts", bottom="Intensity")
+        self.graph3.setLogMode(x=False, y=True)
         self.item3 = self.graph3.plot(
             self.hist_data,
             stepMode="center",

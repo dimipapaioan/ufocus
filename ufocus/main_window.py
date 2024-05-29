@@ -212,33 +212,33 @@ class MainWindow(QMainWindow):
         self.toolbarVideoLabel.setIconSize(QSize(16, 16))
 
         self.actionOpenInFullScreen = QAction("Fullscreen", self)
-        self.actionOpenInFullScreen.setIcon(QIcon(QPixmap(":/icons/expand-solid.svg")))
+        self.actionOpenInFullScreen.setIcon(QIcon(":/icons/expand-solid.svg"))
         self.actionOpenInFullScreen.setCheckable(True)
         self.actionOpenInFullScreen.triggered.connect(self.setFullScreen)
         self.toolbarVideoLabel.addAction(self.actionOpenInFullScreen)
 
         self.actionZoomIn = QAction("Zoom In", self)
-        self.actionZoomIn.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-plus-solid.svg")))
+        self.actionZoomIn.setIcon(QIcon(":/icons/magnifying-glass-plus-solid.svg"))
         self.actionZoomIn.setShortcut("Ctrl++")
         self.actionZoomIn.triggered.connect(self.zoom_in)
         self.toolbarVideoLabel.addAction(self.actionZoomIn)
 
         self.actionZoomOut = QAction("Zoom Out", self)
-        self.actionZoomOut.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-minus-solid.svg")))
+        self.actionZoomOut.setIcon(QIcon(":/icons/magnifying-glass-minus-solid.svg"))
         self.actionZoomOut.setShortcut("Ctrl+-")
         self.actionZoomOut.triggered.connect(self.zoom_out)
         self.actionZoomOut.setEnabled(False)
         self.toolbarVideoLabel.addAction(self.actionZoomOut)
 
         self.actionZoomRestore = QAction("Restore Zoom", self)
-        self.actionZoomRestore.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-solid.svg")))
+        self.actionZoomRestore.setIcon(QIcon(":/icons/magnifying-glass-solid.svg"))
         self.actionZoomRestore.setShortcut("Ctrl+0")
         self.actionZoomRestore.triggered.connect(self.zoom_restore)
         self.actionZoomRestore.setEnabled(False)
         self.toolbarVideoLabel.addAction(self.actionZoomRestore)
 
         self.actionSaveImageAs = QAction("Save Image As...", self)
-        self.actionSaveImageAs.setIcon(QIcon(QPixmap(":/icons/floppy-disk-solid.svg")))
+        self.actionSaveImageAs.setIcon(QIcon(":/icons/floppy-disk-solid.svg"))
         self.actionSaveImageAs.setShortcut("Ctrl+Shift+S")
         self.actionSaveImageAs.triggered.connect(self.saveImage)
         self.actionSaveImageAs.setEnabled(False)
@@ -523,8 +523,8 @@ class MainWindow(QMainWindow):
         if pressed:
             self.win = FullScreenWindow(self)
             pixmaps = (
-                QPixmap(":/icons/compress-solid.svg"), 
-                QPixmap(":/icons/magnifying-glass-plus-solid.svg"), 
+                QPixmap(":/icons/compress-solid.svg"),
+                QPixmap(":/icons/magnifying-glass-plus-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-minus-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-solid.svg"),
                 QPixmap(":/icons/floppy-disk-solid.svg"),
@@ -543,12 +543,12 @@ class MainWindow(QMainWindow):
             self.actionSaveImageAs.setIcon(QIcon(pixmaps[4]))
         else:
             self.tab1.setLayout(self.tab1_layout)
-            self.actionOpenInFullScreen.setIcon(QIcon(QPixmap(":/icons/expand-solid.svg")))
+            self.actionOpenInFullScreen.setIcon(QIcon(":/icons/expand-solid.svg"))
             self.actionOpenInFullScreen.setToolTip("FullScreen")
-            self.actionZoomIn.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-plus-solid.svg")))
-            self.actionZoomOut.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-minus-solid.svg")))
-            self.actionZoomRestore.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-solid.svg")))
-            self.actionSaveImageAs.setIcon(QIcon(QPixmap(":/icons/floppy-disk-solid.svg")))
+            self.actionZoomIn.setIcon(QIcon(":/icons/magnifying-glass-plus-solid.svg"))
+            self.actionZoomOut.setIcon(QIcon(":/icons/magnifying-glass-minus-solid.svg"))
+            self.actionZoomRestore.setIcon(QIcon(":/icons/magnifying-glass-solid.svg"))
+            self.actionSaveImageAs.setIcon(QIcon(":/icons/floppy-disk-solid.svg"))
             self.win.close()
 
     def setupConnections(self):

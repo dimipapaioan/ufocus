@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from typing import Optional, Union
 
 from pypylon import pylon
 from PySide6.QtCore import (
@@ -20,7 +21,10 @@ from PySide6.QtWidgets import (
 import serial
 from serial.tools.list_ports import comports
 
-from camera_worker import CameraWorkerR
+from cameras.camera_base import Camera
+from cameras.basler_camera import BaslerCamera
+from cameras.builtin_camera import BuiltInCamera
+from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing import ImageProcessing
@@ -56,6 +60,7 @@ CUSTOM_STYLESHEET = """
         background-color: lightgrey;
         color: black;
     }
+
     FullScreenWindow {
         background-color: black;
         padding: 2%;
@@ -95,7 +100,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.1.0</p>
+<p>Version: 2.2.0</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -109,10 +114,9 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.ports = self.list_ports()
         self.serial_port = None
-        self.factory = pylon.TlFactory.GetInstance()
         self.devices = self.list_cameras()
-        self.camera = None
-        self.threadpool = QThreadPool(self)
+        self.camera: Optional[Camera] = None
+        self.threadpool = QThreadPool.globalInstance()
         self.settings_manager = SettingsManager(self)
         self.initUI()
         self.settings_manager.setUserValues()
@@ -164,25 +168,20 @@ class MainWindow(QMainWindow):
 
         # self.serial_port = None
 
-    def list_cameras(self):
-        devices = self.factory.EnumerateDevices()
-        if devices:
-            logger.info("Camera devices found")
-            return devices
-        else:
-            logger.warning("No camera devices found")
-            return []
-
-    def connect_camera(self, camera_idx):
-        camera = pylon.InstantCamera(self.factory.CreateDevice(self.devices[camera_idx]))
-        return camera
-
-    def disconnect_camera(self, camera):
-        if camera.IsGrabbing():
-            camera.StopGrabbing()
-
-        camera.Close()
-        camera.DestroyDevice()
+    def list_cameras(self) -> list[dict[str, Union[str, Camera]]]:
+        # This method will be modified once the extension architecture is implemented
+        # For now just return a list with the supported Camera objects
+        supported_cameras = [
+            {
+                "name": "Basler ace2",
+                "class": BaslerCamera,
+            },
+            {
+                "name": "Generic (OpenCV)",
+                "class": BuiltInCamera,
+            }
+        ]
+        return supported_cameras
 
     def initUI(self):
         self.setWindowTitle("μFocus")
@@ -213,33 +212,33 @@ class MainWindow(QMainWindow):
         self.toolbarVideoLabel.setIconSize(QSize(16, 16))
 
         self.actionOpenInFullScreen = QAction("Fullscreen", self)
-        self.actionOpenInFullScreen.setIcon(QIcon(QPixmap(":/icons/expand-solid.svg")))
+        self.actionOpenInFullScreen.setIcon(QIcon(":/icons/expand-solid.svg"))
         self.actionOpenInFullScreen.setCheckable(True)
         self.actionOpenInFullScreen.triggered.connect(self.setFullScreen)
         self.toolbarVideoLabel.addAction(self.actionOpenInFullScreen)
 
         self.actionZoomIn = QAction("Zoom In", self)
-        self.actionZoomIn.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-plus-solid.svg")))
+        self.actionZoomIn.setIcon(QIcon(":/icons/magnifying-glass-plus-solid.svg"))
         self.actionZoomIn.setShortcut("Ctrl++")
         self.actionZoomIn.triggered.connect(self.zoom_in)
         self.toolbarVideoLabel.addAction(self.actionZoomIn)
 
         self.actionZoomOut = QAction("Zoom Out", self)
-        self.actionZoomOut.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-minus-solid.svg")))
+        self.actionZoomOut.setIcon(QIcon(":/icons/magnifying-glass-minus-solid.svg"))
         self.actionZoomOut.setShortcut("Ctrl+-")
         self.actionZoomOut.triggered.connect(self.zoom_out)
         self.actionZoomOut.setEnabled(False)
         self.toolbarVideoLabel.addAction(self.actionZoomOut)
 
         self.actionZoomRestore = QAction("Restore Zoom", self)
-        self.actionZoomRestore.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-solid.svg")))
+        self.actionZoomRestore.setIcon(QIcon(":/icons/magnifying-glass-solid.svg"))
         self.actionZoomRestore.setShortcut("Ctrl+0")
         self.actionZoomRestore.triggered.connect(self.zoom_restore)
         self.actionZoomRestore.setEnabled(False)
         self.toolbarVideoLabel.addAction(self.actionZoomRestore)
 
         self.actionSaveImageAs = QAction("Save Image As...", self)
-        self.actionSaveImageAs.setIcon(QIcon(QPixmap(":/icons/floppy-disk-solid.svg")))
+        self.actionSaveImageAs.setIcon(QIcon(":/icons/floppy-disk-solid.svg"))
         self.actionSaveImageAs.setShortcut("Ctrl+Shift+S")
         self.actionSaveImageAs.triggered.connect(self.saveImage)
         self.actionSaveImageAs.setEnabled(False)
@@ -259,7 +258,6 @@ class MainWindow(QMainWindow):
 
         self.close_button = QPushButton("Stop", self)
         self.close_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.close_button.clicked.connect(self.stop_capture)
         self.close_button.setEnabled(False)
 
         self.single_button = QPushButton("Single", self)
@@ -364,11 +362,11 @@ class MainWindow(QMainWindow):
         self.setupMainStatusBar()
 
         # Set the layout
-        self.tab1.layout = QVBoxLayout()
-        self.tab1.layout.addWidget(self.toolbarVideoLabel)
-        self.tab1.layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
-        self.tab1.layout.addWidget(self.status_bar)
-        self.tab1.setLayout(self.tab1.layout)
+        self.tab1_layout = QVBoxLayout()
+        self.tab1_layout.addWidget(self.toolbarVideoLabel)
+        self.tab1_layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
+        self.tab1_layout.addWidget(self.status_bar)
+        self.tab1.setLayout(self.tab1_layout)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.start_button)
@@ -525,8 +523,8 @@ class MainWindow(QMainWindow):
         if pressed:
             self.win = FullScreenWindow(self)
             pixmaps = (
-                QPixmap(":/icons/compress-solid.svg"), 
-                QPixmap(":/icons/magnifying-glass-plus-solid.svg"), 
+                QPixmap(":/icons/compress-solid.svg"),
+                QPixmap(":/icons/magnifying-glass-plus-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-minus-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-solid.svg"),
                 QPixmap(":/icons/floppy-disk-solid.svg"),
@@ -544,13 +542,13 @@ class MainWindow(QMainWindow):
             self.actionZoomRestore.setIcon(QIcon(pixmaps[3]))
             self.actionSaveImageAs.setIcon(QIcon(pixmaps[4]))
         else:
-            self.tab1.setLayout(self.tab1.layout)
-            self.actionOpenInFullScreen.setIcon(QIcon(QPixmap(":/icons/expand-solid.svg")))
+            self.tab1.setLayout(self.tab1_layout)
+            self.actionOpenInFullScreen.setIcon(QIcon(":/icons/expand-solid.svg"))
             self.actionOpenInFullScreen.setToolTip("FullScreen")
-            self.actionZoomIn.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-plus-solid.svg")))
-            self.actionZoomOut.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-minus-solid.svg")))
-            self.actionZoomRestore.setIcon(QIcon(QPixmap(":/icons/magnifying-glass-solid.svg")))
-            self.actionSaveImageAs.setIcon(QIcon(QPixmap(":/icons/floppy-disk-solid.svg")))
+            self.actionZoomIn.setIcon(QIcon(":/icons/magnifying-glass-plus-solid.svg"))
+            self.actionZoomOut.setIcon(QIcon(":/icons/magnifying-glass-minus-solid.svg"))
+            self.actionZoomRestore.setIcon(QIcon(":/icons/magnifying-glass-solid.svg"))
+            self.actionSaveImageAs.setIcon(QIcon(":/icons/floppy-disk-solid.svg"))
             self.win.close()
 
     def setupConnections(self):
@@ -566,7 +564,6 @@ class MainWindow(QMainWindow):
         if self.ports:
             for port in self.ports:
                 self.comboboxSerial.addItem(port.description)
-            self.comboboxSerial.setCurrentIndex(0)
         else:
             self.comboboxSerial.setPlaceholderText("No serial ports found...")
             self.connectionButtonSerial.setEnabled(False)
@@ -583,8 +580,7 @@ class MainWindow(QMainWindow):
 
         if self.devices:
             for device in self.devices:
-                self.comboboxCamera.addItem(device.GetFriendlyName())
-            self.comboboxSerial.setCurrentIndex(1)
+                self.comboboxCamera.addItem(device["name"])
         else:
             self.comboboxCamera.setPlaceholderText("No camera found...")
             self.connectionButtonCamera.setEnabled(False)
@@ -681,28 +677,25 @@ class MainWindow(QMainWindow):
 
         self.actionResetCamera = QAction("Reset camera settings", self)
         self.actionResetCamera.setEnabled(False)
-        self.actionResetCamera.triggered.connect(
-            lambda: self.reset_camera_settings(self.camera)
-        )
     
     @Slot()
     def setCameraExposureTime(self, value):
         try:
-            self.camera.ExposureTime.SetValue(value)
+            self.camera.camera.ExposureTime.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the exposure time, no camera connected in the system")
 
     @Slot()
     def setCameraGain(self, value):
         try:
-            self.camera.Gain.SetValue(value)
+            self.camera.camera.Gain.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the gain, no camera connected in the system")
 
     @Slot()
     def setCameraContrast(self, value):
         try:
-            self.camera.BslContrast.SetValue(value)
+            self.camera.camera.BslContrast.SetValue(value)
         except AttributeError:
             logger.debug("Ignored setting the contrast, no camera connected in the system")
 
@@ -863,12 +856,12 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            self.worker = CameraWorkerR(self.camera, self)
+            self.worker = self.camera.get_worker(self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:
             # Connect signals and slots
-            self.worker.handler.updateFrame.connect(self.video_label.setImage)
+            self.worker.signals.updateFrame.connect(self.video_label.setImage)
             self.worker.signals.fps.connect(
                 lambda fps: self.statusLabelFPS.setText(f'FPS: {fps:.2f}')
             )
@@ -907,10 +900,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def stop_capture(self):
-        self.worker.camera.StopGrabbing()
-        # self.worker.camera.Close()
-        # print("Finished")
-        # self.worker.signals.finished.emit()
+        self.camera.stop()
 
     @Slot()
     def get_single_image(self):
@@ -918,7 +908,7 @@ class MainWindow(QMainWindow):
         #     self.camera.StopGrabbing()
         try:
             self.temp_img = pylon.PylonImage()
-            with self.camera.GrabOne(11000) as grab:
+            with self.camera.camera.GrabOne(11000) as grab:
                 self.temp_img.AttachGrabResultBuffer(grab)
                 # self.temp_img = pylon.PylonImage(grab)
                 img = grab.GetArray()
@@ -1006,7 +996,7 @@ class MainWindow(QMainWindow):
                 self.imageProcessingWorker = ImageProcessing(self)
 
                 # Connect the signal from the camera worker directly to the image processing function
-                self.worker.handler.progress.connect(self.imageProcessingWorker.imageProcessing)
+                self.worker.signals.progress.connect(self.imageProcessingWorker.imageProcessing)
                 self.spinboxImagesToAccumulate.valueChanged.connect(self.imageProcessingWorker.setNumberOfImagesToAccumulate)
                 self.spinboxGaussianKernel.valueChanged.connect(self.imageProcessingWorker.setGaussianKernel)
                 self.spinboxThreshold.valueChanged.connect(self.imageProcessingWorker.setThreshold)
@@ -1020,7 +1010,7 @@ class MainWindow(QMainWindow):
         else:
             if hasattr(self, 'worker') and hasattr(self, 'imageProcessingWorker'):
                 if self.imageProcessingWorker.eventloop.isRunning():
-                    self.worker.handler.progress.disconnect(self.imageProcessingWorker.imageProcessing)
+                    self.worker.signals.progress.disconnect(self.imageProcessingWorker.imageProcessing)
                     self.imageProcessingWorker.eventloop.exit()
 
     def imageProcessingErrorDialog(self):
@@ -1141,22 +1131,26 @@ class MainWindow(QMainWindow):
 
     # TODO This could be removed, it is kept for logging purposes
     @Slot()
-    def selectionSerialChanged(self):
+    def selectionSerialChanged(self, index):
         logger.debug(
             f'Serial port selection changed.\n'
             f'index: {self.comboboxSerial.currentIndex()}\n'
             f'port: {self.comboboxSerial.currentText()}\n'
             f'name: {self.ports[self.comboboxSerial.currentIndex()].name}\n'
         )
+        self.settings_manager.user_settings.update({"comboboxSerial": index})
+        self.settings_manager.saveUserSettings()
 
     # TODO This could be removed, it is kept for logging purposes
     @Slot()
-    def selectionCameraChanged(self):
+    def selectionCameraChanged(self, index):
         logger.debug(
             f'Camera selection changed.\n'
             f'index: {self.comboboxCamera.currentIndex()}\n'
             f'camera: {self.comboboxCamera.currentText()}\n'
         )
+        self.settings_manager.user_settings.update({"comboboxCamera": index})
+        self.settings_manager.saveUserSettings()
 
     @Slot()
     def onSerialChecked(self, checked):
@@ -1223,19 +1217,6 @@ class MainWindow(QMainWindow):
             f"<p>Check whether they are properly connected to the computer or to external power.</p>",
             QMessageBox.StandardButton.Ok
         )
-    # @Slot(int)
-    # def onDial1Moved(self, value):
-    #     print(f'Current of PS1 changed to: {value / 100}')
-    #     self.ps1.set_programmed_current(value / 100)
-    #     # print("Restarted refresh timer.")
-    #     # self.refreshTimer.start(1000)
-
-    # @Slot(int)
-    # def onDial2Moved(self, value):
-    #     print(f'Current of PS2 changed to: {value / 100}')
-    #     self.ps2.set_programmed_current(value / 100)
-    #     # print("Restarted refresh timer.")
-    #     # self.refreshTimer.start(1000)
 
     @Slot(list)
     def setPSCurrents(self, x):
@@ -1248,8 +1229,10 @@ class MainWindow(QMainWindow):
     def onCameraChecked(self, checked):
         if checked:
             try:
-                self.camera = self.connect_camera(self.comboboxCamera.currentIndex())
-            except pylon.RuntimeException:
+                index: int = self.comboboxCamera.currentIndex()
+                self.camera = self.devices[index]["class"]()
+                self.camera.connect(index)
+            except CameraConnectionError:
                 self.connectionButtonCamera.setChecked(False)
                 logger.error("Could not connect to camera")
                 QMessageBox.critical(
@@ -1261,70 +1244,44 @@ class MainWindow(QMainWindow):
             else:
                 self.comboboxCamera.setEnabled(False)
                 self.connectionButtonCamera.setText("Disconnect")
-                self.configure_camera(self.camera)
+                self.camera.configure()
+                self.event_filter.setCameraWidthAndHeight((self.camera.width, self.camera.height))
+                self.close_button.clicked.connect(self.stop_capture)
+                self.actionResetCamera.triggered.connect(self.camera.reset)
 
-                self.updateCameraParameters()
+                try:
+                    self.updateCameraParameters()
+                except AttributeError:
+                    logger.warning("Reading and setting parameters is not supported for the connected camera, ignoring")
                 self.actionResetCamera.setEnabled(True)
         else:
-            if self.camera is not None:
-                if self.camera.IsGrabbing():
-                    self.stop_capture()
-                self.disconnect_camera(self.camera)
+            if self.camera.camera is not None:
+                self.stop_capture()
+                self.camera.disconnect()
                 self.comboboxCamera.setEnabled(True)
                 self.connectionButtonCamera.setText("Connect")
                 self.actionResetCamera.setEnabled(False)
-
-    def configure_camera(self, camera):
-        camera.Open()
-        # to get consistant results it is always good to start from "power-on" state
-        # camera.UserSetSelector.Value = "Default"
-        # camera.UserSetLoad.Execute()
-
-        # Configure the camera
-        camera.PixelFormat.Value = "Mono8"
-        # camera.ExposureTime.Value = 50_000.0
-        # camera.Gain.Value = 25.0
-        # camera.BslContrast.Value = 0.0
-        self.camera_width = camera.Width.GetValue()
-        self.camera_height = camera.Height.GetValue()
-        self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
+                self.camera = None
     
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(
-            self.camera.ExposureTime.Min,
-            self.camera.ExposureTime.Max
+            self.camera.camera.ExposureTime.Min,
+            self.camera.camera.ExposureTime.Max
         )
         # self.camera.ExposureTime.SetValue(30_000.0)
-        self.spinboxExposureTime.setValue(self.camera.ExposureTime.GetValue())
+        self.spinboxExposureTime.setValue(self.camera.camera.ExposureTime.GetValue())
 
         self.sliderGain.setRange(
-            self.camera.Gain.Min,
-            self.camera.Gain.Max
+            self.camera.camera.Gain.Min,
+            self.camera.camera.Gain.Max
         )
-        self.spinboxGain.setValue(self.camera.Gain.GetValue())
+        self.spinboxGain.setValue(self.camera.camera.Gain.GetValue())
 
         self.sliderContrast.setRange(
-            self.camera.BslContrast.Min * 100,
-            self.camera.BslContrast.Max * 100
+            self.camera.camera.BslContrast.Min * 100,
+            self.camera.camera.BslContrast.Max * 100
         )
-        self.spinboxContrast.setValue(self.camera.BslContrast.GetValue())
-    
-    @Slot()
-    def reset_camera_settings(self, camera):
-        if camera.IsOpen():
-            if camera.IsGrabbing():
-                camera.StopGrabbing()
-
-            # Retrieve default settings
-            camera.UserSetSelector.SetValue("Default")
-            camera.UserSetLoad.Execute()
-
-            # Re-configure the camera
-            camera.PixelFormat.SetValue("Mono8")
-            self.camera_width = camera.Width.GetValue()
-            self.camera_height = camera.Height.GetValue()
-            self.event_filter.setCameraWidthAndHeight((self.camera_width, self.camera_height))
-            self.updateCameraParameters()
+        self.spinboxContrast.setValue(self.camera.camera.BslContrast.GetValue())
 
     def closeEvent(self, event):
         result = QMessageBox.question(
@@ -1343,10 +1300,10 @@ class MainWindow(QMainWindow):
                     self.pscontroller.loop.exit()
                     self.pscontroller.queue_thread.join(timeout=0.5)
             if self.camera is not None:
-                if self.camera.IsGrabbing():
-                    logger.warning("Camera is still open")
-                    self.stop_capture()
-                    logger.info("Camera closed")
+                if self.camera.is_connected:
+                    logger.warning("Camera is still connected")
+                    self.camera.disconnect()
+                    logger.info("Camera disconnected")
             if hasattr(self, 'imageProcessingWorker'):
                 if self.imageProcessingWorker.eventloop.isRunning():
                     logger.warning("Image processing is still running")

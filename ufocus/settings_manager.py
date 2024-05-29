@@ -30,6 +30,8 @@ DEFAULT_SETTINGS = {
     "pts_scan_x16": [],
     "draw_scan_x40": False,
     "draw_scan_x16": False,
+    "comboboxSerial": 0,
+    "comboboxCamera": 0,
 }
 
 SETTINGS_T1 = (
@@ -45,6 +47,11 @@ SETTINGS_T1 = (
     "pts_scan_x16",
     "draw_scan_x40",
     "draw_scan_x16",
+)
+
+SETTINGS_T2 = (
+    "comboboxSerial",
+    "comboboxCamera",
 )
 
 logger = logging.getLogger(__name__)
@@ -94,6 +101,9 @@ class SettingsManager(metaclass=SettingsManagerMeta):
         for key, value in DEFAULT_SETTINGS.items():
             if key in SETTINGS_T1:
                 setattr(self.parent.video_label, key, value)
+            elif key in SETTINGS_T2:
+                atr = getattr(self.parent, key)
+                atr.setCurrentIndex(value)
             else:
                 atr = getattr(self.parent, key)
                 atr.setValue(value)
@@ -109,20 +119,26 @@ class SettingsManager(metaclass=SettingsManagerMeta):
         else:
             logger.info("Using the default settings")
             with open(f"{BASE_PATH}/user_settings.json", "w") as file:
-                json.dump(DEFAULT_SETTINGS, file, cls=JSONSpecialEncoder)
+                json.dump(DEFAULT_SETTINGS, file, cls=JSONSpecialEncoder, indent=4)
             return DEFAULT_SETTINGS.copy()
 
     def setUserValues(self):
         if self.user_settings is not None:
             for key, value in self.user_settings.items():
-                if key in SETTINGS_T1:
-                    setattr(self.parent.video_label, key, value)
-                else:
-                    atr = getattr(self.parent, key)
-                    atr.setValue(value)
+                try:
+                    if key in SETTINGS_T1:
+                        setattr(self.parent.video_label, key, value)
+                    elif key in SETTINGS_T2:
+                        atr = getattr(self.parent, key)
+                        atr.setCurrentIndex(value)
+                    else:
+                        atr = getattr(self.parent, key)
+                        atr.setValue(value)
+                except AttributeError:
+                    logger.warning(f"An error occured while setting attribute {key}, ignoring it for now")
         else:
             self.setDefaultValues()
 
     def saveUserSettings(self):
         with open(f"{BASE_PATH}/user_settings.json", "w") as file:
-            json.dump(self.user_settings, file, cls=JSONSpecialEncoder)
+            json.dump(self.user_settings, file, cls=JSONSpecialEncoder, indent=4)

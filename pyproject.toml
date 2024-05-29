@@ -10,8 +10,7 @@ authors = [
 ]
 description = "uFocus: An autofocusing system for the nuclear microprobe at Uppsala University's Tandem Laboratory"
 dependencies = [
-    "pyside6-essentials == 6.7.0",
-    "pyside6-qtads == 4.2.1.1",
+    "pyside6-qtads == 4.3.0.1",
     "pyqtgraph",
     "opencv-python-headless",
     "pypylon",

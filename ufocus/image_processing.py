@@ -185,14 +185,15 @@ class ImageProcessing(QRunnable):
                 )[0]
 
                 # draw contours on the original image
-                for contour in sorted(contours, key=cv2.contourArea):
+                # use only the two largest contours in ascending order
+                # so that the largest is always last 
+                for contour in sorted(contours, key=cv2.contourArea)[-2:]:
                     area = cv2.contourArea(contour)
                     if area > 100:
                         ellipse = cv2.fitEllipse(contour)
                         # (x_c, y_c), (width, height), angle = ellipse # height: major axis, width: minor axis
                         detected_ellipse = DetectedEllipse(*ellipse[0], *ellipse[1], ellipse[2])
                         cv2.ellipse(im_copy, ellipse, (255, 255, 255), 2)
-
                         logger.info(detected_ellipse)
 
                 self.signals.imageProcessingDone.emit(im_copy)

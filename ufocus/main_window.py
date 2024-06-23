@@ -100,7 +100,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.2.0</p>
+<p>Version: 2.2.1</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -1031,7 +1031,6 @@ class MainWindow(QMainWindow):
         self.minimizerWorker.signals.boundsError.connect(self.minimizerBoundsError)
         self.minimizerWorker.signals.inAccumulation.connect(self.imageProcessingWorker.setInAccumulation)
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
-        self.minimizerWorker.signals.setCurrent.connect(self.setPSCurrents)
         self.minimizerWorker.signals.updateFunction.connect(self.plotting.updatePlotFunction)
         self.minimizerWorker.signals.finished.connect(
             lambda: self.improc_button.setChecked(False)
@@ -1217,13 +1216,6 @@ class MainWindow(QMainWindow):
             f"<p>Check whether they are properly connected to the computer or to external power.</p>",
             QMessageBox.StandardButton.Ok
         )
-
-    @Slot(list)
-    def setPSCurrents(self, x):
-        logger.info(f'Setting Q1 current to: {x[0]}')
-        self.pscontroller.setPS1Current(x[0] * 100)
-        logger.info(f'Setting Q2/3 currents to: {x[1]}')
-        self.pscontroller.setPS2Current(x[1] * 100)
 
     @Slot()
     def onCameraChecked(self, checked):

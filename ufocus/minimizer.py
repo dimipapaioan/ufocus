@@ -48,6 +48,7 @@ class Minimizer(QRunnable):
         logger.info("Minimizer started")
         self.pscontroller.signals.controlTimer.emit(True)
         self.signals.inAccumulation.emit(False)
+        self.signals.setCurrent.connect(self.setPSCurrents)
 
         initial = [
             self.parent.spinboxInitialPS1.value(),
@@ -157,3 +158,10 @@ class Minimizer(QRunnable):
 
     def calculate_perimeter(self, a, b):
         return pi * (3 * (a + b) - sqrt((3 * a + b) * (a + 3 * b)))
+    
+    @Slot(list)
+    def setPSCurrents(self, x):
+        logger.info(f'Setting Q1 current to: {x[0]}')
+        self.pscontroller.setPS1Current(x[0] * 100)
+        logger.info(f'Setting Q2/3 currents to: {x[1]}')
+        self.pscontroller.setPS2Current(x[1] * 100)

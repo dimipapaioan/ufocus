@@ -41,8 +41,17 @@ Features:
 > [!IMPORTANT]
 > This software is not endorsed of affiliated by any means with Basler AG or TDK-Lambda.
 
-## Run the application
-Download and install Python, e.g. with [Miniforge](https://github.com/conda-forge/miniforge). The application has been tested with Python 3.10 and 3.11, however Python 3.11 is recommended.
+# Example run
+
+The example demonstrated below is from a 2 MeV H<sup>+</sup> beam incident on a fluorescent screen. Between each objective function evaluation, indicated by the number at the lower left of the illustration below, μFocus first accumulates a number of consecutive frames (as many as the user selects), and the average image is obtained. This pre-processing step is necessary in order to counterbalance beam instabilities and other sources of noise. After feature detection, the major and minor axes of the beam-spot are used as input in the minimization algorithm in play behind the scenes. Updated currents for the power supplies are the output of the minimizer in each step. After a number of iterations, and according to termination criteria selected by the user, μfocus is able to find the combination of power supply currents yielding the minimum beam-spot dimensions.
+
+![ufocus-example](images/images_processed_fast.gif)
+
+# Run μFocus
+
+Download and extract the latest `.zip` file under the Releases section. Run the `μFocus.exe` file in the extracted folder. μFocus is distributed as a compiled binary distribution package (with the help of [Nuitka](https://github.com/Nuitka/Nuitka)). Only Windows binaries are currently supported in this format. See below for instructions on how to produce binaries for other operating systems.
+
+Alternatively, independently of the operating system, μFocus can be run as a regular Python script. Download and install Python, e.g. with [Miniforge](https://github.com/conda-forge/miniforge). The application has been tested with Python 3.10 and 3.11, however Python 3.11 is recommended.
 
 Once Python is installed, create an environment named e.g. ufocus:
 ```
@@ -55,22 +64,22 @@ conda activate ufocus
 pip install -r requirements.txt
 ```
 
-Once the dependencies of μFocus have been installed, run the application:
+Once the dependencies of μFocus have been installed, download the code in this repository and run the application:
 ```
 python ufocus/main.py
 ```
 
-## Build
-To build from source, install [Nuitka](https://github.com/Nuitka/Nuitka) with pip in the environment
+# Build using Nuitka
+To build a binary distribution from source, install [Nuitka](https://github.com/Nuitka/Nuitka) with pip in the environment where the dependencies of μFocus are also installed:
 ```
 pip install nuitka
 ```
 
-and run the following command:
+Run the following command to produce a binary distribution:
 ```
 nuitka ufocus/main.py --standalone --remove-output --enable-plugin=pyside6 --user-package-configuration-file=pypylon.yml --output-dir=deployment --noinclude-qt-translations --windows-icon-from-ico=icons/icon3_256.png
 ```
-This will create a folder named ```main.dist``` in the deployment folder. The application can be executed with the ```main.exe``` inside that folder.
+This will create a folder named ```main.dist``` in the deployment folder. The application can be executed with the ```main.exe``` inside that folder. For other options, check the [documentation](https://nuitka.net/) of Nuitka.
 
 ### Build application icons using the QResource system
 ```

@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uFocus"
-version = "2.2.1"
+version = "2.2.2"
 authors = [
     {name = "Dimitrios Papaioannou", email = "dimipapaioan@outlook.com"},
 ]
 description = "uFocus: An autofocusing system for the nuclear microprobe at Uppsala University's Tandem Laboratory"
 dependencies = [
-    "pyside6-qtads == 4.3.0.1",
+    "pyside6-qtads == 4.3.0.2",
     "pyqtgraph",
     "opencv-python-headless",
     "pypylon",

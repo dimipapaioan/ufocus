@@ -1,4 +1,4 @@
-pyside6-qtads==4.3.0.1
+pyside6-qtads==4.3.0.2
 pyqtgraph
 opencv-python-headless
 pypylon

@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
+from workers.camera_worker_base import CameraWorker
+
 
 class Camera(ABC):
 
@@ -26,7 +28,7 @@ class Camera(ABC):
     def disconnect(self): ...
 
     @abstractmethod
-    def get_worker(self): ...
+    def get_worker(self) -> CameraWorker: ...
 
     @abstractmethod
     def start(self): ...

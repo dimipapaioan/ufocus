@@ -40,7 +40,7 @@ class BuiltInCamera(Camera):
         self.camera = None
         self.is_connected = False
 
-    def get_worker(self, parent):
+    def get_worker(self, parent) -> BuiltInCameraWorker:
         return BuiltInCameraWorker(self.camera, parent)
 
     def start(self):

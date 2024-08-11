@@ -37,6 +37,7 @@ from widgets import (
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
     FullScreenWindow,
 )
+from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """
     QLCDNumber {
@@ -856,7 +857,7 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            self.worker = self.camera.get_worker(self)
+            self.worker: CameraWorker = self.camera.get_worker(self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:

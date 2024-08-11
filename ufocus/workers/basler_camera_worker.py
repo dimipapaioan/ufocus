@@ -6,29 +6,21 @@ import time
 from pypylon import pylon
 from pypylon.genicam import GenericException
 from numpy import ndarray
-
-from PySide6.QtCore import (
-    QObject, Signal, Slot, QRunnable
-    )
+from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtGui import QImage
+
+from workers.camera_worker_base import CameraWorker
 
 
 logger = logging.getLogger(__name__)
 
-class BaslerCameraWorkerSignals(QObject):
-    finished = Signal()
-    progress = Signal(ndarray)
-    updateFrame = Signal(QImage)
-    fps = Signal(float)
-    error = Signal()
 
-class BaslerCameraWorker(QRunnable):
+class BaslerCameraWorker(CameraWorker):
 
-    def __init__(self, camera, parent=None):
+    def __init__(self, camera: pylon.InstantCamera, parent=None):
         super().__init__(parent)
         self.parent = parent
         self.camera = camera
-        self.signals = BaslerCameraWorkerSignals(self.parent)
         self.handler = CameraImageHandler(self.parent)
         self.camera.RegisterImageEventHandler(self.handler, pylon.RegistrationMode_ReplaceAll, pylon.Cleanup_Delete)
         self.printer = ConfigurationEventPrinter()
@@ -48,12 +40,8 @@ class BaslerCameraWorker(QRunnable):
             self.signals.error.emit()
         else:
             while self.camera.IsGrabbing():
-                # print("Grabbing.")
                 self.signals.fps.emit(self.camera.ResultingFrameRate.GetValue())
                 time.sleep(0.33)
-                #print("Gray values of first row: ", self.handler.img[0])
-            # self.camera.Close()
-            # if not self.camera.IsGrabbing():
             self.camera.DeregisterImageEventHandler(self.handler)
             self.camera.DeregisterConfiguration(self.printer)
         finally:
@@ -75,7 +63,7 @@ class CameraImageHandler(pylon.ImageEventHandler, QObject):
 
     def OnImageGrabbed(self, camera, grab):
         if grab.GrabSucceeded():
-            self.img = grab.GetArray()
+            self.img: ndarray = grab.GetArray()
             self.progress.emit(self.img)
             if self.img.ndim == 2:
                 h, w = self.img.shape

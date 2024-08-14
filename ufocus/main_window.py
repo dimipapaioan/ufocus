@@ -1022,6 +1022,15 @@ class MainWindow(QMainWindow):
             f"<p>The camera needs to be opened first in order for image processing to start.</p>",
             QMessageBox.StandardButton.Ok
         )
+    
+    def imageProcessingROIErrorDialog(self):
+        QMessageBox.critical(
+            self,
+            "Image Processing Error",
+            f"<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
+            f"<p>The specified ROI is too small. Try to set a larger ROI instead.</p>",
+            QMessageBox.StandardButton.Ok
+        )
 
     @Slot()
     def initializeMinimization(self):

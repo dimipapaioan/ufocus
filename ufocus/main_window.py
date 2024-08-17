@@ -37,6 +37,7 @@ from widgets import (
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
     FullScreenWindow,
 )
+from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """
     QLCDNumber {
@@ -100,7 +101,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.2.2</p>
+<p>Version: 2.2.3</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -856,7 +857,7 @@ class MainWindow(QMainWindow):
     def continuous_capture(self):
         # Create a camera worker object
         try:
-            self.worker = self.camera.get_worker(self)
+            self.worker: CameraWorker = self.camera.get_worker(self)
         except (pylon.GenericException, AttributeError):
             self.cameraErrorDialog()
         else:
@@ -1019,6 +1020,15 @@ class MainWindow(QMainWindow):
             "Image Processing Error",
             f"<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
             f"<p>The camera needs to be opened first in order for image processing to start.</p>",
+            QMessageBox.StandardButton.Ok
+        )
+    
+    def imageProcessingROIErrorDialog(self):
+        QMessageBox.critical(
+            self,
+            "Image Processing Error",
+            f"<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
+            f"<p>The specified ROI is too small. Try to set a larger ROI instead.</p>",
             QMessageBox.StandardButton.Ok
         )
 

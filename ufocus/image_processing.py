@@ -21,6 +21,10 @@ DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
 logger = logging.getLogger(__name__)
 
 
+class ROIBoundsException(Exception):
+    pass
+
+
 @dataclass
 class DetectedEllipse:
     x_c: float = nan
@@ -111,7 +115,13 @@ class ImageProcessing(QRunnable):
                 x_i, y_i = self.parent.video_label.p_i.toTuple()
                 x_f, y_f = self.parent.video_label.p_f.toTuple()
 
-                x1, y1, x2, y2 = self.sanitize(x_i, y_i, x_f, y_f)
+                try:
+                    x1, y1, x2, y2 = self.sanitize(x_i, y_i, x_f, y_f)
+                except ROIBoundsException:
+                    logger.error("The specified ROI is too small")
+                    self.parent.improc_button.toggle()
+                    self.parent.imageProcessingROIErrorDialog()
+                    return None
 
                 image = image[y1:y2, x1:x2]
 
@@ -237,6 +247,9 @@ class ImageProcessing(QRunnable):
             # print(f'Skipped {self.skippedImages} images.', end='\r')
 
     def sanitize(self, xi, yi, xf, yf):
+        if xi == xf or yi == yf:
+            raise ROIBoundsException()
+        
         xmin = min(xi, xf)
         ymin = min(yi, yf)
 

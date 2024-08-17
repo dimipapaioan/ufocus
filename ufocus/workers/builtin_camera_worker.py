@@ -5,26 +5,18 @@ import time
 
 import cv2
 from numpy import ndarray
-
-from PySide6.QtCore import QObject, Signal, Slot, QRunnable
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QImage
+
+from workers.camera_worker_base import CameraWorker
 
 logger = logging.getLogger(__name__)
 
 
-class BuiltInCameraWorkerSignals(QObject):
-    finished = Signal()
-    progress = Signal(ndarray)
-    updateFrame = Signal(QImage)
-    fps = Signal(float)
-    error = Signal()
-
-
 # Create a camera worker class
-class BuiltInCameraWorker(QRunnable):
+class BuiltInCameraWorker(CameraWorker):
     def __init__(self, camera, parent=None):
         super().__init__(parent)
-        self.signals = BuiltInCameraWorkerSignals()
         self.camera: cv2.VideoCapture = camera
 
     @Slot()

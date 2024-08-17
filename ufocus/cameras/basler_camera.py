@@ -42,9 +42,7 @@ class BaslerCamera(Camera):
                 self.factory.CreateDevice(self.devices[idx])
             )
             self.camera.Open()
-        except pylon.RuntimeException:
-            raise CameraConnectionError
-        except IndexError as e:
+        except (pylon.RuntimeException, IndexError):
             raise CameraConnectionError
         else:
             self.is_connected = True
@@ -55,7 +53,7 @@ class BaslerCamera(Camera):
         self.camera.DestroyDevice()
         self.is_connected = False
 
-    def get_worker(self, parent):
+    def get_worker(self, parent) -> BaslerCameraWorker:
         return BaslerCameraWorker(self.camera, parent)
 
     def start(self):

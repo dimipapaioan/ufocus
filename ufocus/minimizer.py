@@ -126,7 +126,7 @@ class Minimizer(QRunnable):
                 logger.debug("Lock acquired from minimizer")
                 self.signals.inAccumulation.emit(True)
                 self.condition.wait(self.mutex)
-                a, b = self.set_res()
+                ellipse = self.set_res()
             finally:
                 self.mutex.unlock()
                 logger.debug("Lock released from minimizer")
@@ -136,9 +136,10 @@ class Minimizer(QRunnable):
             # uses to decide the next step. At this point maybe the value could be sent
             # to someplace else inside the code. The same functionality could be achieved
             # with the callback function.
-            res = (a * b) ** 2 * (
-                1 / (4 * pi**2 * a * b / self.calculate_perimeter(a, b) ** 2) ** 3
-            ) - 1.0
+            # res = (a * b) ** 2 * (
+                # 1 / (4 * pi**2 * a * b / self.calculate_perimeter(a, b) ** 2) ** 3
+            # ) - 1.0
+            res = ellipse.area / ellipse.circularity ** 2
             self.signals.updateFunction.emit(res)
             self.pscontroller.refreshGUI()
             logger.info(f"Min. Func. return value: {res:.2f}")
@@ -149,7 +150,7 @@ class Minimizer(QRunnable):
     @Slot(list)
     def get_res(self, ellipse_data: DetectedEllipse):
         logger.debug("Got values from image processing")
-        self.res = (ellipse_data.major, ellipse_data.minor)
+        self.res = ellipse_data
         self.condition.wakeAll()
 
     def set_res(self):

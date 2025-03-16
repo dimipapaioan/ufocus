@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.11", "3.12"]
     
     runs-on: ${{ matrix.os }}
 
@@ -44,8 +44,7 @@ jobs:
       with:
         nuitka-version: main
         script-name: ufocus/main.py
-        standalone: true
-        onefile: false
+        mode: standalone
         enable-plugins: pyside6
         user-package-configuration-file: pypylon.yml
         windows-icon-from-ico: icons/icon3_256.png

@@ -47,7 +47,7 @@ class DetectedEllipse:
         return 0.25 * pi * major * minor
 
     def calculate_perimeter(self, major: float, minor: float) -> float:
-        return pi * (
+        return 0.5 * pi * (
             3 * (major + minor)
             - sqrt((3 * major + minor) * (major + 3 * minor))
         )

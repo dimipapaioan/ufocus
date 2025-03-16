@@ -3,6 +3,7 @@
 name: Build Python application in Windows
 
 on:
+  workflow_dispatch:
   release:
     types: [ published ]
 

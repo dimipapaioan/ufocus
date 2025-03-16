@@ -30,7 +30,7 @@ from event_filter import EventFilter
 from image_processing import ImageProcessing
 from minimizer import Minimizer
 from ps_controller import PSController
-import resources
+import resources  # noqa: F401
 from settings_manager import SettingsManager
 from widgets import (
     LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
@@ -101,7 +101,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.2.3</p>
+<p>Version: 2.2.4</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -270,8 +270,8 @@ class MainWindow(QMainWindow):
         self.roi_checkbox.setChecked(self.settings_manager.user_settings['roi_draw'])
         self.roi_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         self.roi_checkbox.setToolTip(
-            f"<p>Hold Left Click and drag the mouse on the Live Feed image to set a ROI.</p>"
-            f"<p>Press Middle Click anywhere on the Live Feed image to unset it.</p>"
+            "<p>Hold Left Click and drag the mouse on the Live Feed image to set a ROI.</p>"
+            "<p>Press Middle Click anywhere on the Live Feed image to unset it.</p>"
         )
         self.roi_checkbox.stateChanged.connect(self.onROIStateChanged)
 
@@ -279,8 +279,8 @@ class MainWindow(QMainWindow):
         self.crosshair_x40_checkbox.setChecked(self.settings_manager.user_settings['draw_crosshair_x40'])
         self.crosshair_x40_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         self.crosshair_x40_checkbox.setToolTip(
-            f"<p>Press Ctrl + Left Click on the Live Feed image to set a crosshair point.</p>"
-            f"<p>Press Ctrl + Middle Click anywhere on the Live Feed image to unset it.</p>"
+            "<p>Press Ctrl + Left Click on the Live Feed image to set a crosshair point.</p>"
+            "<p>Press Ctrl + Middle Click anywhere on the Live Feed image to unset it.</p>"
         )
         self.crosshair_x40_checkbox.stateChanged.connect(self.onCrosshairX40StateChanged)
 
@@ -288,8 +288,8 @@ class MainWindow(QMainWindow):
         self.scan_x40_checkbox.setChecked(self.settings_manager.user_settings['draw_scan_x40'])
         self.scan_x40_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         self.scan_x40_checkbox.setToolTip(
-            f"<p>Press Ctrl + Alt + Left Click on the Live Feed image to select the points of the region to be marked.</p>"
-            f"<p>Press Ctrl + Alt + Middle Click anywhere on the Live Feed image to unset all of them.</p>"
+            "<p>Press Ctrl + Alt + Left Click on the Live Feed image to select the points of the region to be marked.</p>"
+            "<p>Press Ctrl + Alt + Middle Click anywhere on the Live Feed image to unset all of them.</p>"
         )
         self.scan_x40_checkbox.stateChanged.connect(self.onScanX40StateChanged)
 
@@ -297,8 +297,8 @@ class MainWindow(QMainWindow):
         self.crosshair_x16_checkbox.setChecked(self.settings_manager.user_settings['draw_crosshair_x16'])
         self.crosshair_x16_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         self.crosshair_x16_checkbox.setToolTip(
-            f"<p>Press Ctrl + Shift + Left Click on the Live Feed image to set a crosshair point.</p>"
-            f"<p>Press Ctrl + Shift + Middle Click anywhere on the Live Feed image to unset it.</p>"
+            "<p>Press Ctrl + Shift + Left Click on the Live Feed image to set a crosshair point.</p>"
+            "<p>Press Ctrl + Shift + Middle Click anywhere on the Live Feed image to unset it.</p>"
         )
         self.crosshair_x16_checkbox.stateChanged.connect(self.onCrosshairX16StateChanged)
 
@@ -306,8 +306,8 @@ class MainWindow(QMainWindow):
         self.scan_x16_checkbox.setChecked(self.settings_manager.user_settings['draw_scan_x16'])
         self.scan_x16_checkbox.setCursor(Qt.CursorShape.PointingHandCursor)
         self.scan_x16_checkbox.setToolTip(
-            f"<p>Press Ctrl + Alt + Shift + Left Click on the Live Feed image to select the points of the region to be marked.</p>"
-            f"<p>Press Ctrl + Alt + Shift + Middle Click anywhere on the Live Feed image to unset all of them.</p>"
+            "<p>Press Ctrl + Alt + Shift + Left Click on the Live Feed image to select the points of the region to be marked.</p>"
+            "<p>Press Ctrl + Alt + Shift + Middle Click anywhere on the Live Feed image to unset all of them.</p>"
         )
         self.scan_x16_checkbox.stateChanged.connect(self.onScanX16StateChanged)
 
@@ -741,7 +741,7 @@ class MainWindow(QMainWindow):
         self.spinboxXATol.setValue(-4)
         self.spinboxXATol.setPrefix("1E")
         self.spinboxXATol.setKeyboardTracking(False)
-        self.spinboxXATol.setToolTip(f"<p>Parameter absolute tolerance</p>")
+        self.spinboxXATol.setToolTip("<p>Parameter absolute tolerance</p>")
         self.spinboxXATol.valueChanged.connect(
             lambda v: self.settings_manager.user_settings.update({"spinboxXATol": v})
         )
@@ -751,7 +751,7 @@ class MainWindow(QMainWindow):
         self.spinboxFATol.setValue(-4)
         self.spinboxFATol.setPrefix("1E")
         self.spinboxFATol.setKeyboardTracking(False)
-        self.spinboxFATol.setToolTip(f"<p>Objective function absolute tolerance</p>")
+        self.spinboxFATol.setToolTip("<p>Objective function absolute tolerance</p>")
         self.spinboxFATol.valueChanged.connect(
             lambda v: self.settings_manager.user_settings.update({"spinboxFATol": v})
         )
@@ -761,7 +761,7 @@ class MainWindow(QMainWindow):
         self.spinboxMaxIter.setValue(100)
         self.spinboxMaxIter.setSpecialValueText("Default")
         self.spinboxMaxIter.setKeyboardTracking(False)
-        self.spinboxMaxIter.setToolTip(f"<p>Maximum allowed number of iterations</p>")
+        self.spinboxMaxIter.setToolTip("<p>Maximum allowed number of iterations</p>")
         self.spinboxMaxIter.valueChanged.connect(
             lambda v: self.settings_manager.user_settings.update({"spinboxMaxIter": v})
         )
@@ -771,7 +771,7 @@ class MainWindow(QMainWindow):
         self.spinboxMaxFEval.setValue(200)
         self.spinboxMaxFEval.setSpecialValueText("Default")
         self.spinboxMaxFEval.setKeyboardTracking(False)
-        self.spinboxMaxFEval.setToolTip(f"<p>Maximum allowed number of function evaluations</p>")
+        self.spinboxMaxFEval.setToolTip("<p>Maximum allowed number of function evaluations</p>")
         self.spinboxMaxFEval.valueChanged.connect(
             lambda v: self.settings_manager.user_settings.update({"spinboxMaxFEval": v})
         )
@@ -1018,8 +1018,8 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(
             self,
             "Image Processing Error",
-            f"<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
-            f"<p>The camera needs to be opened first in order for image processing to start.</p>",
+            "<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
+            "<p>The camera needs to be opened first in order for image processing to start.</p>",
             QMessageBox.StandardButton.Ok
         )
     
@@ -1027,8 +1027,8 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(
             self,
             "Image Processing Error",
-            f"<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
-            f"<p>The specified ROI is too small. Try to set a larger ROI instead.</p>",
+            "<p><b><font size='+1'>Image processing could not be started.</font></b></p>"
+            "<p>The specified ROI is too small. Try to set a larger ROI instead.</p>",
             QMessageBox.StandardButton.Ok
         )
 
@@ -1068,8 +1068,8 @@ class MainWindow(QMainWindow):
                 result = QMessageBox.warning(
                 self,
                 "Found existing data",
-                f"<p><b><font size='+1'>Data from a previous run were found.</font size='+1'></b></p>"
-                f"</p>The minimization process will <b>override</b> any existing data. This cannot be undone. Continue?</p>",
+                "<p><b><font size='+1'>Data from a previous run were found.</font size='+1'></b></p>"
+                "</p>The minimization process will <b>override</b> any existing data. This cannot be undone. Continue?</p>",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
                 )
@@ -1119,8 +1119,8 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(
             self,
             "Minimizer Error",
-            f"<p><b><font size='+1'>Minimization bounds are incorrect.</font></b></p>"
-            f"<p>An upper bound is less than the corresponding lower bound.</p>",
+            "<p><b><font size='+1'>Minimization bounds are incorrect.</font></b></p>"
+            "<p>An upper bound is less than the corresponding lower bound.</p>",
             QMessageBox.StandardButton.Ok
         )
     
@@ -1129,8 +1129,8 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(
             self,
             "Minimizer Error",
-            f"<p><b><font size='+1'>The minimizer could not be started.</font></b></p>"
-            f"<p>Verify that the camera is properly connected and acquiring images (Start button is pressed) and that the power supplies are successfully connected.</p>",
+            "<p><b><font size='+1'>The minimizer could not be started.</font></b></p>"
+            "<p>Verify that the camera is properly connected and acquiring images (Start button is pressed) and that the power supplies are successfully connected.</p>",
             QMessageBox.StandardButton.Ok
         )
 

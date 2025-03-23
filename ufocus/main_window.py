@@ -104,6 +104,8 @@ ABOUT = """
 <p>Version: 2.3.0</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
+<p>GitHub:
+<a href = "https://github.com/dimipapaioan/ufocus"> dimipapaioan </a> </p>
 """
 
 logger = logging.getLogger(__name__)

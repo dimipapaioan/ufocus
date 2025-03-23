@@ -9,6 +9,8 @@ from PySide6.QtCore import (
     Signal,
     Slot,
     QRunnable,
+    QWaitCondition,
+    QMutex,
 )
 from scipy.optimize import minimize, OptimizeResult
 
@@ -18,15 +20,6 @@ from settings_manager import SettingsManager
 
 
 logger = logging.getLogger(__name__)
-
-
-class MinimizerSignals(QObject):
-    boundsError = Signal()
-    updateCurrent = Signal(list)
-    setCurrent = Signal(list)
-    updateFunction = Signal(float)
-    inAccumulation = Signal(bool)
-    finished = Signal()
 
 
 @dataclass
@@ -53,8 +46,24 @@ class ObjectiveFunctionInfo:
     min_delta: float = nan
 
 
+class MinimizerSignals(QObject):
+    boundsError = Signal()
+    updateCurrent = Signal(list)
+    setCurrent = Signal(list)
+    updateFunction = Signal(float)
+    inAccumulation = Signal(bool)
+    updateStats = Signal(PSCurrentsInfo, ObjectiveFunctionInfo)
+    finished = Signal()
+
+
 class Minimizer(QRunnable):
-    def __init__(self, pscontroller: PSController, mutex, condition, parent=None) -> None:
+    def __init__(
+        self,
+        pscontroller: PSController,
+        mutex: QMutex,
+        condition: QWaitCondition,
+        parent=None,
+    ) -> None:
         super().__init__(parent)
         self.parent = parent
         self.pscontroller = pscontroller
@@ -72,6 +81,7 @@ class Minimizer(QRunnable):
         self.denominator_pow = 2
 
         logger.info("Minimizer initialized")
+        self.signals.updateStats.emit(self.ps_currents_stats, self.obj_func_stats)
 
     def run(self) -> None:
         logger.info("Minimizer started")
@@ -179,6 +189,7 @@ class Minimizer(QRunnable):
             self.signals.updateFunction.emit(res)
 
             self.update_statistics(x, res)
+            self.signals.updateStats.emit(self.ps_currents_stats, self.obj_func_stats)
 
             self.pscontroller.refreshGUI()
 

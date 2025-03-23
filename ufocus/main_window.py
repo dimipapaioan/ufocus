@@ -1053,6 +1053,7 @@ class MainWindow(QMainWindow):
         self.minimizerWorker.signals.inAccumulation.connect(self.imageProcessingWorker.setInAccumulation)
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
         self.minimizerWorker.signals.updateFunction.connect(self.plotting.updatePlotFunction)
+        self.minimizerWorker.signals.updateStats.connect(self.imageProcessingFeed.onMinimizerFuncEvalUpdate)
         self.minimizerWorker.signals.finished.connect(
             lambda: self.improc_button.setChecked(False)
         )

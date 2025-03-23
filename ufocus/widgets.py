@@ -21,7 +21,8 @@ from PySide6.QtWidgets import (
     QWidget, QLabel, QSizePolicy, QLCDNumber, QPushButton, QGroupBox,
     QVBoxLayout, QGridLayout, QApplication, QFrame, QDial,
     QDoubleSpinBox, QToolBar, QDialog, QDialogButtonBox, QMessageBox,
-    QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QPlainTextEdit
+    QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QPlainTextEdit,
+    QFormLayout, QHBoxLayout,
 )
 import PySide6QtAds as QtAds
 from pypylon import pylon
@@ -30,6 +31,7 @@ from pyqtgraph import setConfigOptions, PlotWidget, mkPen, mkBrush
 from dirs import BASE_DATA_PATH
 from event_filter_cal import EventFilterCal
 from image_processing import DetectedEllipse
+from minimizer import PSCurrentsInfo, ObjectiveFunctionInfo
 import resources  # noqa: F401
 
 setConfigOptions(
@@ -864,10 +866,37 @@ class ImageProcessingWidget(QWidget):
         self.toolbar = QToolBar(self)
         self.toolbar.setIconSize(QSize(16, 16))
         self.toolbar.addAction(self.actionOpenInWindow)
+
+        self.ps1_previous_label = QLabel("nan")
+        self.ps2_previous_label = QLabel("nan")
+        self.ps1_min_label = QLabel("nan")
+        self.ps2_min_label = QLabel("nan")
+
+        formPSCurrentsStats = QFormLayout()
+        formPSCurrentsStats.addRow("Last PS1:", self.ps1_previous_label)
+        formPSCurrentsStats.addRow("Last PS2:", self.ps2_previous_label)
+        formPSCurrentsStats.addRow("Min. PS1:", self.ps1_min_label)
+        formPSCurrentsStats.addRow("Min. PS2:", self.ps2_min_label)
+        
+        self.obj_func_previous_label = QLabel("nan")
+        self.obj_func_delta_label = QLabel("nan")
+        self.obj_func_min_label = QLabel("nan")
+        self.obj_func_min_delta_label = QLabel("nan")
+
+        formObjFuncStats = QFormLayout()
+        formObjFuncStats.addRow("{:<16}".format("Last obj. func.:"), self.obj_func_previous_label)
+        formObjFuncStats.addRow("{:<16}".format("Min. obj. func.:"), self.obj_func_min_label)
+        formObjFuncStats.addRow("{:<16}".format("Last delta:"), self.obj_func_delta_label)
+        formObjFuncStats.addRow("{:<16}".format("Min. delta:"), self.obj_func_min_delta_label)
+
+        minimizerStats = QHBoxLayout()
+        minimizerStats.addLayout(formPSCurrentsStats)
+        minimizerStats.addLayout(formObjFuncStats)
         
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.video_label)
+        layout.addLayout(minimizerStats)
         self.setLayout(layout)
     
     @Slot()
@@ -881,6 +910,17 @@ class ImageProcessingWidget(QWidget):
             self.imageProcessingWindow.close()
             self.actionOpenInWindow.setText("Open in window")
             self.imageProcessingWindow = None
+    
+    @Slot(PSCurrentsInfo, ObjectiveFunctionInfo)
+    def onMinimizerFuncEvalUpdate(self, ps_currents: PSCurrentsInfo, obj_func: ObjectiveFunctionInfo) -> None:
+        self.ps1_previous_label.setText(f"{ps_currents.ps1_previous:.4f}")
+        self.ps2_previous_label.setText(f"{ps_currents.ps2_previous:.4f}")
+        self.ps1_min_label.setText(f"{ps_currents.ps1_min:.4f}")
+        self.ps2_min_label.setText(f"{ps_currents.ps2_min:.4f}")
+        self.obj_func_previous_label.setText(f"{obj_func.previous:.4f}")
+        self.obj_func_min_label.setText(f"{obj_func.min_val:.4f}")
+        self.obj_func_delta_label.setText(f"{obj_func.delta:.4f}")
+        self.obj_func_min_delta_label.setText(f"{obj_func.min_delta:.4f}")
 
 
 class LogSignals(QObject):

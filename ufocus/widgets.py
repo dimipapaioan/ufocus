@@ -937,7 +937,6 @@ class LoggerWidget(QWidget):
         self.log_output.appendPlainText(status)
 
 
-
 if __name__ == "__main__":
     import sys
 

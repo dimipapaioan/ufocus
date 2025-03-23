@@ -35,7 +35,7 @@ from settings_manager import SettingsManager
 from widgets import (
     LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
-    FullScreenWindow,
+    FullScreenWindow, LoggerWidget
 )
 from workers.camera_worker_base import CameraWorker
 
@@ -196,12 +196,15 @@ class MainWindow(QMainWindow):
         self.imageProcessingFeed = ImageProcessingWidget(self)
         self.plotting = PlottingWidget(self)
         self.histograms = HistogramsWidget(self)
+        self.logging = LoggerWidget(self)
+        logging.root.addHandler(self.logging.handler)
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Live Feed")
         self.tabs.addTab(self.imageProcessingFeed, "Processed Feed")
         self.tabs.addTab(self.plotting, "Plotting")
         self.tabs.addTab(self.histograms, "Histograms")
+        self.tabs.addTab(self.logging, "Logging")
 
         # Create and connect widgets
         self.video_label = LiveCameraFeedWidget(self)

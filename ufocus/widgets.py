@@ -970,7 +970,7 @@ class LoggerWidget(QWidget):
         self.log_output = QPlainTextEdit()
         self.log_output.setReadOnly(True)
         # self.log_output.setFrameStyle(0)
-        self.log_output.setMaximumBlockCount(1500)
+        self.log_output.setMaximumBlockCount(2000)
 
         font = QFont('nosuchfont')
         font.setStyleHint(font.StyleHint.Monospace)

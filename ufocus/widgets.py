@@ -406,7 +406,7 @@ class PlottingWidget(QWidget):
         self.dock_widget1 = QtAds.CDockWidget("Ellipse Axes")
         self.dock_widget1.setContentsMargins(5, 5, 10, 5)
         self.dock_widget1.setWidget(self.pw1)
-        i = manager.addDockWidget(QtAds.LeftDockWidgetArea, self.dock_widget1)
+        manager.addDockWidget(QtAds.LeftDockWidgetArea, self.dock_widget1)
 
         self.pw2 = PlotWidget()
         self.graph2 = self.pw2.getPlotItem()
@@ -442,7 +442,7 @@ class PlottingWidget(QWidget):
         self.dock_widget2 = QtAds.CDockWidget("Currents")
         self.dock_widget2.setContentsMargins(5, 5, 10, 5)
         self.dock_widget2.setWidget(self.pw2)
-        h = manager.addDockWidget(QtAds.RightDockWidgetArea, self.dock_widget2)
+        manager.addDockWidget(QtAds.RightDockWidgetArea, self.dock_widget2)
 
         self.pw3 = PlotWidget()
         self.graph3 = self.pw3.getPlotItem()

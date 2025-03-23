@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
         # Initialize tab screen
         self.tabs = QTabWidget()
         self.tabs.setMovable(True)
-        self.tab1 = QWidget()
+        self.liveFeed = QWidget()
         self.imageProcessingFeed = ImageProcessingWidget(self)
         self.plotting = PlottingWidget(self)
         self.histograms = HistogramsWidget(self)
@@ -202,7 +202,7 @@ class MainWindow(QMainWindow):
         logging.root.addHandler(self.logging.handler)
 
         # Add tabs
-        self.tabs.addTab(self.tab1, "Live Feed")
+        self.tabs.addTab(self.liveFeed, "Live Feed")
         self.tabs.addTab(self.imageProcessingFeed, "Processed Feed")
         self.tabs.addTab(self.plotting, "Plotting")
         self.tabs.addTab(self.histograms, "Histograms")
@@ -368,11 +368,11 @@ class MainWindow(QMainWindow):
         self.setupMainStatusBar()
 
         # Set the layout
-        self.tab1_layout = QVBoxLayout()
-        self.tab1_layout.addWidget(self.toolbarVideoLabel)
-        self.tab1_layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
-        self.tab1_layout.addWidget(self.status_bar)
-        self.tab1.setLayout(self.tab1_layout)
+        self.liveFeed_layout = QVBoxLayout()
+        self.liveFeed_layout.addWidget(self.toolbarVideoLabel)
+        self.liveFeed_layout.addWidget(self.video_label, Qt.AlignmentFlag.AlignCenter)
+        self.liveFeed_layout.addWidget(self.status_bar)
+        self.liveFeed.setLayout(self.liveFeed_layout)
 
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.start_button)
@@ -548,7 +548,7 @@ class MainWindow(QMainWindow):
             self.actionZoomRestore.setIcon(QIcon(pixmaps[3]))
             self.actionSaveImageAs.setIcon(QIcon(pixmaps[4]))
         else:
-            self.tab1.setLayout(self.tab1_layout)
+            self.liveFeed.setLayout(self.liveFeed_layout)
             self.actionOpenInFullScreen.setIcon(QIcon(":/icons/expand-solid.svg"))
             self.actionOpenInFullScreen.setToolTip("FullScreen")
             self.actionZoomIn.setIcon(QIcon(":/icons/magnifying-glass-plus-solid.svg"))

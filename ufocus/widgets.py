@@ -45,7 +45,7 @@ class FullScreenWindow(QWidget):
         super().__init__(parent)
         # self.parent = parent
 
-        self.parentLayout = self.parentWidget().tab1.layout
+        self.parentLayout = self.parentWidget().liveFeed.layout
         self.setLayout(self.parentLayout())
         # self.fullLayout = QHBoxLayout(self)
         # self.fullLayout.addWidget(self.parentWidget().video_label)

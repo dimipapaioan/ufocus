@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QCheckBox, QStatusBar,
     QMessageBox, QTabWidget, QGridLayout, QGroupBox, QSpinBox,
     QDoubleSpinBox, QComboBox, QSlider, QToolBar, QFormLayout,
-    QFileDialog,
+    QFileDialog, QLineEdit,
 )
 import serial
 from serial.tools.list_ports import comports
@@ -35,7 +35,7 @@ from settings_manager import SettingsManager
 from widgets import (
     LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
-    FullScreenWindow,
+    FullScreenWindow, LoggerWidget
 )
 from workers.camera_worker_base import CameraWorker
 
@@ -101,7 +101,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.2.4</p>
+<p>Version: 2.3.0</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """
@@ -196,12 +196,15 @@ class MainWindow(QMainWindow):
         self.imageProcessingFeed = ImageProcessingWidget(self)
         self.plotting = PlottingWidget(self)
         self.histograms = HistogramsWidget(self)
+        self.logging = LoggerWidget(self)
+        logging.root.addHandler(self.logging.handler)
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Live Feed")
         self.tabs.addTab(self.imageProcessingFeed, "Processed Feed")
         self.tabs.addTab(self.plotting, "Plotting")
         self.tabs.addTab(self.histograms, "Histograms")
+        self.tabs.addTab(self.logging, "Logging")
 
         # Create and connect widgets
         self.video_label = LiveCameraFeedWidget(self)
@@ -776,6 +779,13 @@ class MainWindow(QMainWindow):
             lambda v: self.settings_manager.user_settings.update({"spinboxMaxFEval": v})
         )
 
+        self.lineEditObjFuncPowers = QLineEdit()
+        self.lineEditObjFuncPowers.setInputMask(r"\[9, 9\];_")
+        self.lineEditObjFuncPowers.setToolTip("<p>List of powers to raise the objective function's numerator and denominator</p>")
+        self.lineEditObjFuncPowers.textChanged.connect(
+            lambda v: self.settings_manager.user_settings.update({"lineEditObjFuncPowers": v})
+        )
+
         minimizerOptionsPS1Layout = QFormLayout()
         minimizerOptionsPS1Layout.addRow("Initial [A]:", self.spinboxInitialPS1)
         minimizerOptionsPS1Layout.addRow("Min [A]:", self.spinboxMinPS1)
@@ -791,6 +801,7 @@ class MainWindow(QMainWindow):
         minimizerOtherOptionsLayout.addRow("MAXFEV", self.spinboxMaxFEval)
         minimizerOtherOptionsLayout.addRow("XATOL", self.spinboxXATol)
         minimizerOtherOptionsLayout.addRow("FATOL", self.spinboxFATol)
+        minimizerOtherOptionsLayout.addRow("POWERS", self.lineEditObjFuncPowers)
 
         mainMinimizerLayout = QVBoxLayout()
         mainMinimizerLayout.addWidget(QLabel("PS1 Settings"), alignment=Qt.AlignmentFlag.AlignCenter)
@@ -1042,6 +1053,7 @@ class MainWindow(QMainWindow):
         self.minimizerWorker.signals.inAccumulation.connect(self.imageProcessingWorker.setInAccumulation)
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
         self.minimizerWorker.signals.updateFunction.connect(self.plotting.updatePlotFunction)
+        self.minimizerWorker.signals.updateStats.connect(self.imageProcessingFeed.onMinimizerFuncEvalUpdate)
         self.minimizerWorker.signals.finished.connect(
             lambda: self.improc_button.setChecked(False)
         )

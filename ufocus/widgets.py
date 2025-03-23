@@ -1,26 +1,28 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import logging
+import time
 from dataclasses import dataclass, field, fields
 from datetime import date
 from itertools import zip_longest
 from math import dist, nan
-import time
 
 import cv2
 from numpy import ndarray
 from PySide6.QtCore import (
-    Qt, Signal, Slot, QSize, QRectF, QPoint
+    Qt, Signal, Slot, QSize, QRectF, QPoint, QObject
 )
 from PySide6.QtGui import (
     QImage, QColor, QPixmap, QPainter, QMouseEvent, QPen,
-    QAction, QIcon, QShortcut, QKeySequence, QPolygon
+    QAction, QIcon, QShortcut, QKeySequence, QPolygon, QFont
 )
 from PySide6.QtWidgets import (
     QWidget, QLabel, QSizePolicy, QLCDNumber, QPushButton, QGroupBox,
     QVBoxLayout, QGridLayout, QApplication, QFrame, QDial,
     QDoubleSpinBox, QToolBar, QDialog, QDialogButtonBox, QMessageBox,
-    QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
+    QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QPlainTextEdit,
+    QFormLayout, QHBoxLayout,
 )
 import PySide6QtAds as QtAds
 from pypylon import pylon
@@ -29,7 +31,8 @@ from pyqtgraph import setConfigOptions, PlotWidget, mkPen, mkBrush
 from dirs import BASE_DATA_PATH
 from event_filter_cal import EventFilterCal
 from image_processing import DetectedEllipse
-import resources
+from minimizer import PSCurrentsInfo, ObjectiveFunctionInfo
+import resources  # noqa: F401
 
 setConfigOptions(
     antialias=True,
@@ -403,7 +406,7 @@ class PlottingWidget(QWidget):
         self.dock_widget1 = QtAds.CDockWidget("Ellipse Axes")
         self.dock_widget1.setContentsMargins(5, 5, 10, 5)
         self.dock_widget1.setWidget(self.pw1)
-        i = manager.addDockWidget(QtAds.LeftDockWidgetArea, self.dock_widget1)
+        manager.addDockWidget(QtAds.LeftDockWidgetArea, self.dock_widget1)
 
         self.pw2 = PlotWidget()
         self.graph2 = self.pw2.getPlotItem()
@@ -439,7 +442,7 @@ class PlottingWidget(QWidget):
         self.dock_widget2 = QtAds.CDockWidget("Currents")
         self.dock_widget2.setContentsMargins(5, 5, 10, 5)
         self.dock_widget2.setWidget(self.pw2)
-        h = manager.addDockWidget(QtAds.RightDockWidgetArea, self.dock_widget2)
+        manager.addDockWidget(QtAds.RightDockWidgetArea, self.dock_widget2)
 
         self.pw3 = PlotWidget()
         self.graph3 = self.pw3.getPlotItem()
@@ -863,10 +866,37 @@ class ImageProcessingWidget(QWidget):
         self.toolbar = QToolBar(self)
         self.toolbar.setIconSize(QSize(16, 16))
         self.toolbar.addAction(self.actionOpenInWindow)
+
+        self.ps1_previous_label = QLabel("nan")
+        self.ps2_previous_label = QLabel("nan")
+        self.ps1_min_label = QLabel("nan")
+        self.ps2_min_label = QLabel("nan")
+
+        formPSCurrentsStats = QFormLayout()
+        formPSCurrentsStats.addRow("Last PS1:", self.ps1_previous_label)
+        formPSCurrentsStats.addRow("Last PS2:", self.ps2_previous_label)
+        formPSCurrentsStats.addRow("Min. PS1:", self.ps1_min_label)
+        formPSCurrentsStats.addRow("Min. PS2:", self.ps2_min_label)
+        
+        self.obj_func_previous_label = QLabel("nan")
+        self.obj_func_delta_label = QLabel("nan")
+        self.obj_func_min_label = QLabel("nan")
+        self.obj_func_min_delta_label = QLabel("nan")
+
+        formObjFuncStats = QFormLayout()
+        formObjFuncStats.addRow("{:<16}".format("Last obj. func.:"), self.obj_func_previous_label)
+        formObjFuncStats.addRow("{:<16}".format("Min. obj. func.:"), self.obj_func_min_label)
+        formObjFuncStats.addRow("{:<16}".format("Last delta:"), self.obj_func_delta_label)
+        formObjFuncStats.addRow("{:<16}".format("Min. delta:"), self.obj_func_min_delta_label)
+
+        minimizerStats = QHBoxLayout()
+        minimizerStats.addLayout(formPSCurrentsStats)
+        minimizerStats.addLayout(formObjFuncStats)
         
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.video_label)
+        layout.addLayout(minimizerStats)
         self.setLayout(layout)
     
     @Slot()
@@ -880,6 +910,72 @@ class ImageProcessingWidget(QWidget):
             self.imageProcessingWindow.close()
             self.actionOpenInWindow.setText("Open in window")
             self.imageProcessingWindow = None
+    
+    @Slot(PSCurrentsInfo, ObjectiveFunctionInfo)
+    def onMinimizerFuncEvalUpdate(self, ps_currents: PSCurrentsInfo, obj_func: ObjectiveFunctionInfo) -> None:
+        self.ps1_previous_label.setText(f"{ps_currents.ps1_previous:.4f}")
+        self.ps2_previous_label.setText(f"{ps_currents.ps2_previous:.4f}")
+        self.ps1_min_label.setText(f"{ps_currents.ps1_min:.4f}")
+        self.ps2_min_label.setText(f"{ps_currents.ps2_min:.4f}")
+        self.obj_func_previous_label.setText(f"{obj_func.previous:.4f}")
+        self.obj_func_min_label.setText(f"{obj_func.min_val:.4f}")
+        self.obj_func_delta_label.setText(f"{obj_func.delta:.4f}")
+        self.obj_func_min_delta_label.setText(f"{obj_func.min_delta:.4f}")
+
+
+class LogSignals(QObject):
+    message = Signal(str, logging.LogRecord)
+
+
+class LoggerWidgetHandler(logging.Handler):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.signals = LogSignals()
+
+    def emit(self, record) -> None:
+        msg = self.format(record)
+        self.signals.message.emit(msg, record)
+
+
+class LoggerWidget(QWidget):
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        # self.colors = {
+        #     logging.DEBUG: 'black',
+        #     logging.INFO: 'blue',
+        #     logging.WARNING: 'orange',
+        #     logging.ERROR: 'red',
+        #     logging.CRITICAL: 'purple',
+        # }
+
+        self.log_output = QPlainTextEdit()
+        self.log_output.setReadOnly(True)
+        # self.log_output.setFrameStyle(0)
+        self.log_output.setMaximumBlockCount(1500)
+
+        font = QFont('nosuchfont')
+        font.setStyleHint(font.StyleHint.Monospace)
+        font.setPointSize(10)
+        self.log_output.setFont(font)
+        
+        self.handler = LoggerWidgetHandler()
+        self.handler.setFormatter(
+            logging.Formatter("%(asctime)s | %(levelname)-7s | %(name)s: %(message)s")
+        )
+
+        self.handler.signals.message.connect(self.update_logger)
+        
+        layout = QVBoxLayout()
+        layout.addWidget(self.log_output)
+        self.setLayout(layout)
+    
+    @Slot(str, logging.LogRecord)
+    def update_logger(self, status: str, record: logging.LogRecord) -> None:
+        # color = self.colors.get(record.levelno, 'black')
+        # s = '<pre><font color="%s">%s</font></pre>' % (color, status)
+        # self.log_output.appendHtml(s)
+        self.log_output.appendPlainText(status)
+
 
 if __name__ == "__main__":
     import sys

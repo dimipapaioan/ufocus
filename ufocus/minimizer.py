@@ -68,6 +68,8 @@ class Minimizer(QRunnable):
         self.signals = MinimizerSignals()
         self.obj_func_stats = ObjectiveFunctionInfo()
         self.ps_currents_stats = PSCurrentsInfo()
+        self.numerator_pow = 1
+        self.denominator_pow = 2
 
         logger.info("Minimizer initialized")
 
@@ -85,6 +87,13 @@ class Minimizer(QRunnable):
             (self.parent.spinboxMinPS1.value(), self.parent.spinboxMaxPS1.value()),
             (self.parent.spinboxMinPS2.value(), self.parent.spinboxMaxPS2.value()),
         ]
+        try:
+            self.numerator_pow, self.denominator_pow = eval(self.parent.lineEditObjFuncPowers.text())
+        except (SyntaxError, ValueError) as err:
+            logger.error(f"Obj. function powers have not been set correctly: {err}")
+            logger.warning(f"Falling back to default values [{self.numerator_pow}, {self.denominator_pow}] "
+                "for the numerator and the denominator, respectively"
+            )
 
         try:
             self.solution: OptimizeResult = minimize(
@@ -165,7 +174,7 @@ class Minimizer(QRunnable):
             # uses to decide the next step. At this point maybe the value could be sent
             # to someplace else inside the code. The same functionality could be achieved
             # with the callback function.
-            res = ellipse.area / ellipse.circularity**2
+            res = ellipse.area**self.numerator_pow / ellipse.circularity**self.denominator_pow
 
             self.signals.updateFunction.emit(res)
 

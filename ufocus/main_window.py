@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QCheckBox, QStatusBar,
     QMessageBox, QTabWidget, QGridLayout, QGroupBox, QSpinBox,
     QDoubleSpinBox, QComboBox, QSlider, QToolBar, QFormLayout,
-    QFileDialog,
+    QFileDialog, QLineEdit,
 )
 import serial
 from serial.tools.list_ports import comports
@@ -779,6 +779,13 @@ class MainWindow(QMainWindow):
             lambda v: self.settings_manager.user_settings.update({"spinboxMaxFEval": v})
         )
 
+        self.lineEditObjFuncPowers = QLineEdit()
+        self.lineEditObjFuncPowers.setInputMask(r"\[9, 9\];_")
+        self.lineEditObjFuncPowers.setToolTip("<p>List of powers to raise the objective function's numerator and denominator</p>")
+        self.lineEditObjFuncPowers.textChanged.connect(
+            lambda v: self.settings_manager.user_settings.update({"lineEditObjFuncPowers": v})
+        )
+
         minimizerOptionsPS1Layout = QFormLayout()
         minimizerOptionsPS1Layout.addRow("Initial [A]:", self.spinboxInitialPS1)
         minimizerOptionsPS1Layout.addRow("Min [A]:", self.spinboxMinPS1)
@@ -794,6 +801,7 @@ class MainWindow(QMainWindow):
         minimizerOtherOptionsLayout.addRow("MAXFEV", self.spinboxMaxFEval)
         minimizerOtherOptionsLayout.addRow("XATOL", self.spinboxXATol)
         minimizerOtherOptionsLayout.addRow("FATOL", self.spinboxFATol)
+        minimizerOtherOptionsLayout.addRow("POWERS", self.lineEditObjFuncPowers)
 
         mainMinimizerLayout = QVBoxLayout()
         mainMinimizerLayout.addWidget(QLabel("PS1 Settings"), alignment=Qt.AlignmentFlag.AlignCenter)

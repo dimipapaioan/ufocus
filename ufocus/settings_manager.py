@@ -32,6 +32,7 @@ DEFAULT_SETTINGS = {
     "draw_scan_x16": False,
     "comboboxSerial": 0,
     "comboboxCamera": 0,
+    "lineEditObjFuncPowers": [1, 2],
 }
 
 SETTINGS_T1 = (
@@ -52,6 +53,10 @@ SETTINGS_T1 = (
 SETTINGS_T2 = (
     "comboboxSerial",
     "comboboxCamera",
+)
+
+SETTINGS_T3 = (
+    "lineEditObjFuncPowers"
 )
 
 logger = logging.getLogger(__name__)
@@ -104,6 +109,9 @@ class SettingsManager(metaclass=SettingsManagerMeta):
             elif key in SETTINGS_T2:
                 atr = getattr(self.parent, key)
                 atr.setCurrentIndex(value)
+            elif key in SETTINGS_T3:
+                atr = getattr(self.parent, key)
+                atr.setText(str(value))
             else:
                 atr = getattr(self.parent, key)
                 atr.setValue(value)
@@ -131,6 +139,9 @@ class SettingsManager(metaclass=SettingsManagerMeta):
                     elif key in SETTINGS_T2:
                         atr = getattr(self.parent, key)
                         atr.setCurrentIndex(value)
+                    elif key in SETTINGS_T3:
+                        atr = getattr(self.parent, key)
+                        atr.setText(str(value))
                     else:
                         atr = getattr(self.parent, key)
                         atr.setValue(value)

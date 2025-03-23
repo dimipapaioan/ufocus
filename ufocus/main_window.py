@@ -1017,6 +1017,7 @@ class MainWindow(QMainWindow):
 
                 self.imageProcessingWorker.signals.imageProcessingDone.connect(self.imageProcessingFeed.video_label.setImage)
                 self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.plotting.updatePlotEllipseAxes)
+                self.imageProcessingWorker.signals.imageProcessingEllipse.connect(self.imageProcessingFeed.onImageProcessingEllipsisUpdate)
                 self.imageProcessingWorker.signals.imageProcessingHist.connect(self.histograms.updateHist)
                 self.imageProcessingWorker.signals.imageProcessingHor.connect(self.histograms.updateHistHor)
                 self.imageProcessingWorker.signals.imageProcessingVert.connect(self.histograms.updateHistVert)

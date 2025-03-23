@@ -101,7 +101,7 @@ CUSTOM_STYLESHEET = """
 
 ABOUT = """
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.2.4</p>
+<p>Version: 2.3.0</p>
 <p>Author: Dimitrios Papaioannou
 <a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
 """

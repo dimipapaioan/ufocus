@@ -45,7 +45,7 @@ class FullScreenWindow(QWidget):
         super().__init__(parent)
         # self.parent = parent
 
-        self.parentLayout = self.parentWidget().tab1.layout
+        self.parentLayout = self.parentWidget().liveFeed.layout
         self.setLayout(self.parentLayout())
         # self.fullLayout = QHBoxLayout(self)
         # self.fullLayout.addWidget(self.parentWidget().video_label)
@@ -889,14 +889,26 @@ class ImageProcessingWidget(QWidget):
         formObjFuncStats.addRow("{:<16}".format("Last delta:"), self.obj_func_delta_label)
         formObjFuncStats.addRow("{:<16}".format("Min. delta:"), self.obj_func_min_delta_label)
 
-        minimizerStats = QHBoxLayout()
-        minimizerStats.addLayout(formPSCurrentsStats)
-        minimizerStats.addLayout(formObjFuncStats)
+        self.ellipse_major_label = QLabel("nan")
+        self.ellipse_minor_label = QLabel("nan")
+        self.ellipse_area_label = QLabel("nan")
+        self.ellipse_circ_label = QLabel("nan")
+
+        ellipseStats = QFormLayout()
+        ellipseStats.addRow("{:<12}".format("Major:"), self.ellipse_major_label)
+        ellipseStats.addRow("{:<12}".format("Minor:"), self.ellipse_minor_label)
+        ellipseStats.addRow("{:<12}".format("Area:"), self.ellipse_area_label)
+        ellipseStats.addRow("{:<12}".format("Circularity:"), self.ellipse_circ_label)
+
+        imgProcFeedLiveStats = QHBoxLayout()
+        imgProcFeedLiveStats.addLayout(ellipseStats)
+        imgProcFeedLiveStats.addLayout(formPSCurrentsStats)
+        imgProcFeedLiveStats.addLayout(formObjFuncStats)
         
         layout = QVBoxLayout()
         layout.addWidget(self.toolbar)
         layout.addWidget(self.video_label)
-        layout.addLayout(minimizerStats)
+        layout.addLayout(imgProcFeedLiveStats)
         self.setLayout(layout)
     
     @Slot()
@@ -921,6 +933,13 @@ class ImageProcessingWidget(QWidget):
         self.obj_func_min_label.setText(f"{obj_func.min_val:.4f}")
         self.obj_func_delta_label.setText(f"{obj_func.delta:.4f}")
         self.obj_func_min_delta_label.setText(f"{obj_func.min_delta:.4f}")
+    
+    @Slot(DetectedEllipse)
+    def onImageProcessingEllipsisUpdate(self, ellipse: DetectedEllipse) -> None:
+        self.ellipse_major_label.setText(f"{ellipse.major:.4f}")
+        self.ellipse_minor_label.setText(f"{ellipse.minor:.4f}")
+        self.ellipse_area_label.setText(f"{ellipse.area:.4f}")
+        self.ellipse_circ_label.setText(f"{ellipse.circularity:.4f}")
 
 
 class LogSignals(QObject):
@@ -951,7 +970,7 @@ class LoggerWidget(QWidget):
         self.log_output = QPlainTextEdit()
         self.log_output.setReadOnly(True)
         # self.log_output.setFrameStyle(0)
-        self.log_output.setMaximumBlockCount(1500)
+        self.log_output.setMaximumBlockCount(2000)
 
         font = QFont('nosuchfont')
         font.setStyleHint(font.StyleHint.Monospace)

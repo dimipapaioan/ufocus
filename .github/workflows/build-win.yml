@@ -51,14 +51,45 @@ jobs:
         windows-icon-from-ico: icons/icon3_256.png
         noinclude-qt-translations: true
 
-    # Rename executable
+    # Get latest tag if missing
+    - name: Get latest tag if missing
+      shell: bash
+      run: |
+        if [ -z "${{ github.event.release.tag_name }}" ]; then
+          git fetch --tags
+          echo "VERSION=$(git tag --sort=-creatordate | head -n 1)" >> $GITHUB_ENV
+        else
+          echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+        fi
+
+    # Rename executable file
     - name: Rename executable
       run: |
-        mv build/main.dist/main.exe build/main.dist/uFocus-${{ github.event.release.tag_name }}.exe
-
-    # Uploads artifact
-    - name: Upload Artifact
+        mv build/main.dist/main.exe build/main.dist/uFocus-${{ env.VERSION }}.exe
+    
+    # Upload standalone artifacts
+    - name: Upload standalone
       uses: actions/upload-artifact@v4
       with:
-        name: ufocus-${{ github.event.release.tag_name }}-${{ matrix.os }}-py${{ matrix.python-version }}
+        name: ufocus-standalone-${{ env.VERSION }}-${{ matrix.os }}-py${{ matrix.python-version }}
         path: build/main.dist/
+    
+    # Compile Inno Setup installer
+    - name: Create Installer with Inno Setup
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      with:
+        path: installer.iss
+      env:
+        VERSION: ${{ env.VERSION }}
+    
+    # Rename installer
+    - name: Rename installer
+      run: |
+        mv build/uFocus-setup-win64.exe build/uFocus-${{ env.VERSION }}-setup-py${{ matrix.python-version }}-win64.exe
+    
+    # Uploads artifact
+    - name: Upload installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: ufocus-installer-${{ env.VERSION }}-${{ matrix.os }}-py${{ matrix.python-version }}
+        path: build/*.exe

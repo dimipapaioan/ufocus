@@ -35,8 +35,9 @@ from settings_manager import SettingsManager
 from widgets.widgets import (
     LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
-    FullScreenWindow, LoggerWidget
+    FullScreenWindow
 )
+from widgets.logging_widget import LoggerWidget
 from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """

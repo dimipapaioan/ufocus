@@ -38,7 +38,7 @@ from widgets.image_processing_widget import ImageProcessingWidget
 from widgets.fullscreen_widget import FullScreenWidget
 from widgets.power_supply_widget import PowerSupplyWidget
 from widgets.plotting_widget import PlottingWidget
-from widgets.widgets import HistogramsWidget
+from widgets.histograms_widget import HistogramsWidget
 from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """

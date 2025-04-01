@@ -35,10 +35,10 @@ from settings_manager import SettingsManager
 from widgets.widgets import (
     LiveCameraFeedWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
-    FullScreenWindow
 )
 from widgets.logging_widget import LoggerWidget
 from widgets.image_processing_widget import ImageProcessingWidget
+from widgets.fullscreen_widget import FullScreenWidget
 from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """
@@ -64,32 +64,32 @@ CUSTOM_STYLESHEET = """
         color: black;
     }
 
-    FullScreenWindow {
+    FullScreenWidget {
         background-color: black;
         padding: 2%;
         color: lightgrey;
     }
 
-    FullScreenWindow QWidget {
+    FullScreenWidget QWidget {
         background-color: black;
         padding: 2%;
         color: lightgrey;
     }
 
-    FullScreenWindow QToolButton {
+    FullScreenWidget QToolButton {
         border-radius: 4px;
         padding: 4%;
     }
 
-    FullScreenWindow QToolButton:hover {
+    FullScreenWidget QToolButton:hover {
         border: 1px solid #808080;
     }
 
-    FullScreenWindow QToolButton:hover:pressed {
+    FullScreenWidget QToolButton:hover:pressed {
         border: 1px solid #404040;
     }
 
-    FullScreenWindow QToolTip {
+    FullScreenWidget QToolTip {
         border: 1px solid lightgrey;
         padding: 2%;
         background-color: black;
@@ -529,7 +529,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def setFullScreen(self, pressed):
         if pressed:
-            self.win = FullScreenWindow(self)
+            self.win = FullScreenWidget(self)
             pixmaps = (
                 QPixmap(":/icons/compress-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-plus-solid.svg"),

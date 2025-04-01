@@ -1,6 +1,8 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
 
+import resources  # noqa: F401
+
 
 class FloatingWidget(QWidget):
     def __init__(self, title: str, widget: QWidget, parent=None) -> None:

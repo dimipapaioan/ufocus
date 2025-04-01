@@ -14,7 +14,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtGui import (
     QImage, QColor, QPixmap, QPainter, QMouseEvent, QPen,
-    QAction, QIcon, QShortcut, QKeySequence, QPolygon
+    QAction, QIcon, QPolygon
 )
 from PySide6.QtWidgets import (
     QWidget, QLabel, QSizePolicy, QLCDNumber, QPushButton, QGroupBox,
@@ -38,29 +38,6 @@ setConfigOptions(
     foreground='k',
 )
 
-class FullScreenWindow(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # self.parent = parent
-
-        self.parentLayout = self.parentWidget().liveFeed.layout
-        self.setLayout(self.parentLayout())
-        # self.fullLayout = QHBoxLayout(self)
-        # self.fullLayout.addWidget(self.parentWidget().video_label)
-        # self.fullLayout.addChildWidget(self.parentWidget().toolbarVideoLabel.setalignment)
-        self.setScreen(self.parentWidget().screen())
-        self.setWindowFlags(Qt.WindowType.Window)
-        self.showFullScreen()
-        
-        self.shortcutExitFullScreen = QShortcut(QKeySequence('Escape'), self)
-        self.shortcutExitFullScreen.activated.connect(self.parentWidget().actionOpenInFullScreen.trigger)
-    
-    # def closeEvent(self, event):
-    #     if self.parentWidget().actionOpenInWindow.isChecked():
-    #         self.parentWidget().actionOpenInWindow.trigger()
-    #     self.parentWidget().setLayout(self.parentLayout)
-
-    #     return super().closeEvent(event)
 
 class CameraCalibrationDialog(QDialog):
     calibrationFinished = Signal(list)

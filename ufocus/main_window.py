@@ -32,7 +32,7 @@ from minimizer import Minimizer
 from ps_controller import PSController
 import resources  # noqa: F401
 from settings_manager import SettingsManager
-from widgets import (
+from widgets.widgets import (
     LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
     FullScreenWindow, LoggerWidget

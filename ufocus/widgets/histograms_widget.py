@@ -7,20 +7,14 @@ from PySide6.QtWidgets import (
     QToolBar,
 )
 import PySide6QtAds as QtAds
-from pyqtgraph import setConfigOptions, PlotWidget, mkPen
+from pyqtgraph import PlotWidget, mkPen
 
 from .floating_widget import FloatingWidget
 import resources  # noqa: F401
 
-setConfigOptions(
-    antialias=True,
-    background="w",
-    foreground="k",
-)
-
 
 class HistogramsWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.parent = parent
         self.hor_data = []
@@ -118,22 +112,22 @@ class HistogramsWidget(QWidget):
         self.setLayout(layout)
 
     @Slot(ndarray)
-    def updateHistHor(self, h):
+    def updateHistHor(self, h) -> None:
         self.hor_data = h
         self.item1.setData(range(len(self.hor_data) + 1), self.hor_data)
 
     @Slot(ndarray)
-    def updateHistVert(self, v):
+    def updateHistVert(self, v) -> None:
         self.vert_data = v
         self.item2.setData(range(len(self.vert_data) + 1), self.vert_data)
 
     @Slot(ndarray)
-    def updateHist(self, v):
+    def updateHist(self, v) -> None:
         self.hist_data = v
         self.item3.setData(range(len(self.hist_data) + 1), self.hist_data)
 
     @Slot()
-    def onActionOpenWindowClicked(self, checked):
+    def onActionOpenWindowClicked(self, checked) -> None:
         if checked:
             self.histogramsWindow = FloatingWidget("Histograms", self)
             self.actionOpenInWindow.setIcon(
@@ -149,7 +143,7 @@ class HistogramsWidget(QWidget):
             self.histogramsWindow = None
 
     @Slot()
-    def onActionClearData(self):
+    def onActionClearData(self) -> None:
         self.hor_data = []
         self.vert_data = []
         self.hist_data = []

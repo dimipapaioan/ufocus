@@ -5,18 +5,46 @@ from typing import Optional, Union
 
 from pypylon import pylon
 from PySide6.QtCore import (
-    Qt, Slot, QPoint, QSize,
-    QThreadPool, QMutex, QWaitCondition,
+    Qt,
+    Slot,
+    QPoint,
+    QSize,
+    QThreadPool,
+    QMutex,
+    QWaitCondition,
 )
 from PySide6.QtGui import (
-    QAction, QIcon, QPixmap, QColor, QPainter, QTransform, QImage,
+    QAction,
+    QIcon,
+    QPixmap,
+    QColor,
+    QPainter,
+    QTransform,
+    QImage,
 )
 from PySide6.QtWidgets import (
-    QApplication, QLabel, QMainWindow, QPushButton, QScrollArea,
-    QVBoxLayout, QHBoxLayout, QWidget, QCheckBox, QStatusBar,
-    QMessageBox, QTabWidget, QGridLayout, QGroupBox, QSpinBox,
-    QDoubleSpinBox, QComboBox, QSlider, QToolBar, QFormLayout,
-    QFileDialog, QLineEdit,
+    QApplication,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QHBoxLayout,
+    QWidget,
+    QCheckBox,
+    QStatusBar,
+    QMessageBox,
+    QTabWidget,
+    QGridLayout,
+    QGroupBox,
+    QSpinBox,
+    QDoubleSpinBox,
+    QComboBox,
+    QSlider,
+    QToolBar,
+    QFormLayout,
+    QFileDialog,
+    QLineEdit,
 )
 import serial
 from serial.tools.list_ports import comports
@@ -32,14 +60,17 @@ from minimizer import Minimizer
 from ps_controller import PSController
 import resources  # noqa: F401
 from settings_manager import SettingsManager
-from widgets.logging_widget import LoggerWidget
-from widgets.live_camera_feed_widget import LiveCameraFeedWidget
-from widgets.image_processing_widget import ImageProcessingWidget
-from widgets.fullscreen_widget import FullScreenWidget
-from widgets.power_supply_widget import PowerSupplyWidget
-from widgets.plotting_widget import PlottingWidget
-from widgets.histograms_widget import HistogramsWidget
+from widgets import (
+    FullScreenWidget,
+    HistogramsWidget,
+    ImageProcessingWidget,
+    LiveCameraFeedWidget,
+    LoggerWidget,
+    PlottingWidget,
+    PowerSupplyWidget,
+)
 from workers.camera_worker_base import CameraWorker
+
 
 CUSTOM_STYLESHEET = """
     QLCDNumber {
@@ -1351,4 +1382,3 @@ def main() -> int:
     logger.info("μFocus application terminated")
     
     return exit_code
-    

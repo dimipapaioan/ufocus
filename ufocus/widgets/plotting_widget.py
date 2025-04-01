@@ -14,18 +14,12 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 import PySide6QtAds as QtAds
-from pyqtgraph import setConfigOptions, PlotWidget, mkPen, mkBrush
+from pyqtgraph import PlotWidget, mkPen, mkBrush
 
 from dirs import BASE_DATA_PATH
 from .floating_widget import FloatingWidget
 from image_processing import DetectedEllipse
 import resources  # noqa: F401
-
-setConfigOptions(
-    antialias=True,
-    background="w",
-    foreground="k",
-)
 
 
 @dataclass

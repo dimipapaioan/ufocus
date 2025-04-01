@@ -33,10 +33,10 @@ from ps_controller import PSController
 import resources  # noqa: F401
 from settings_manager import SettingsManager
 from widgets.widgets import (
-    LiveCameraFeedWidget, PowerSupplyWidget, 
-    PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
+    PowerSupplyWidget, PlottingWidget, HistogramsWidget
 )
 from widgets.logging_widget import LoggerWidget
+from widgets.live_camera_feed_widget import LiveCameraFeedWidget
 from widgets.image_processing_widget import ImageProcessingWidget
 from widgets.fullscreen_widget import FullScreenWidget
 from workers.camera_worker_base import CameraWorker
@@ -510,17 +510,18 @@ class MainWindow(QMainWindow):
         self.actionZoomOut.setEnabled(self.video_label.transform().m11() > 1.0)
         self.actionZoomRestore.setEnabled(self.video_label.transform().m11() != 1.0)
     
-    def calibrationDialogAction(self, s):
-        if self.cal is not None:
-            self.windowCalibration.stackedWidget.setCurrentWidget(self.windowCalibration.calibrationInfo)
-        else:
-            print("Camera calibration started")
-            self.windowCalibration = CameraCalibrationDialog()
-            self.windowCalibration.calibrationFinished.connect(
-                lambda cal: print(cal)
-            )
-            self.windowCalibration.calibrationFinished.connect(self.calib)
-        self.windowCalibration.show()
+    def calibrationDialogAction(self, s) -> None:
+        # if self.cal is not None:
+        #     self.windowCalibration.stackedWidget.setCurrentWidget(self.windowCalibration.calibrationInfo)
+        # else:
+        #     print("Camera calibration started")
+        #     self.windowCalibration = CameraCalibrationDialog()
+        #     self.windowCalibration.calibrationFinished.connect(
+        #         lambda cal: print(cal)
+        #     )
+        #     self.windowCalibration.calibrationFinished.connect(self.calib)
+        # self.windowCalibration.show()
+        pass
     
     @Slot(list)
     def calib(self, c):

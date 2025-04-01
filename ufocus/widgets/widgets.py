@@ -10,17 +10,16 @@ from math import dist, nan
 import cv2
 from numpy import ndarray
 from PySide6.QtCore import (
-    Qt, Signal, Slot, QSize, QRectF, QPoint
+    Qt, Signal, Slot, QSize
 )
 from PySide6.QtGui import (
-    QImage, QColor, QPixmap, QPainter, QMouseEvent, QPen,
-    QAction, QIcon, QPolygon
+    QColor, QPixmap, QPainter, QMouseEvent,
+    QAction, QIcon,
 )
 from PySide6.QtWidgets import (
     QWidget, QLabel, QSizePolicy, QLCDNumber, QPushButton, QGroupBox,
     QVBoxLayout, QGridLayout, QApplication, QFrame, QDial,
     QDoubleSpinBox, QToolBar, QDialog, QDialogButtonBox, QMessageBox,
-    QGraphicsView, QGraphicsScene, QGraphicsPixmapItem,
 )
 import PySide6QtAds as QtAds
 from pypylon import pylon
@@ -39,124 +38,124 @@ setConfigOptions(
 )
 
 
-class CameraCalibrationDialog(QDialog):
-    calibrationFinished = Signal(list)
+# class CameraCalibrationDialog(QDialog):
+#     calibrationFinished = Signal(list)
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.parent = parent
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#         self.parent = parent
 
-        self.setWindowTitle("Camera Calibration")
-        buttons = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+#         self.setWindowTitle("Camera Calibration")
+#         buttons = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
 
-        self.buttonBox = QDialogButtonBox(buttons)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
+#         self.buttonBox = QDialogButtonBox(buttons)
+#         self.buttonBox.accepted.connect(self.accept)
+#         self.buttonBox.rejected.connect(self.reject)
 
-        self.single_button = QPushButton("Single", self)
-        self.single_button.setSizePolicy(
-            QSizePolicy.Policy.Fixed,
-            QSizePolicy.Policy.Fixed
-        )
-        # self.setWindowState(Qt.WindowState.WindowFullScreen)
-        self.single_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.single_button.clicked.connect(self.get_single_image)
+#         self.single_button = QPushButton("Single", self)
+#         self.single_button.setSizePolicy(
+#             QSizePolicy.Policy.Fixed,
+#             QSizePolicy.Policy.Fixed
+#         )
+#         # self.setWindowState(Qt.WindowState.WindowFullScreen)
+#         self.single_button.setCursor(Qt.CursorShape.PointingHandCursor)
+#         self.single_button.clicked.connect(self.get_single_image)
 
-        self.label = LiveCameraFeedWidget(self)
-        # Better to create a new event filter specifically for this purpose
-        self.event_filter = EventFilterCal(self.label)
-        # event_filter.positionChanged.connect(self.onPositionChanged)
-        self.im = cv2.imread("100mesh_x16.tiff", cv2.IMREAD_GRAYSCALE)
-        self.label.setImage(self.im)
+#         self.label = LiveCameraFeedWidget(self)
+#         # Better to create a new event filter specifically for this purpose
+#         self.event_filter = EventFilterCal(self.label)
+#         # event_filter.positionChanged.connect(self.onPositionChanged)
+#         self.im = cv2.imread("100mesh_x16.tiff", cv2.IMREAD_GRAYSCALE)
+#         self.label.setImage(self.im)
 
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.single_button, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.layout.addWidget(self.buttonBox)
-        self.setLayout(self.layout)
+#         self.layout = QVBoxLayout()
+#         self.layout.addWidget(self.label)
+#         self.layout.addWidget(self.single_button, alignment=Qt.AlignmentFlag.AlignCenter)
+#         self.layout.addWidget(self.buttonBox)
+#         self.setLayout(self.layout)
     
-    @Slot()
-    def get_single_image(self):
-        if self.parent.camera.IsGrabbing():
-            self.parent.camera.StopGrabbing()
+#     @Slot()
+#     def get_single_image(self):
+#         if self.parent.camera.IsGrabbing():
+#             self.parent.camera.StopGrabbing()
 
-        temp_img = pylon.PylonImage()
-        with self.parent.camera.GrabOne(1000) as grab:
-            temp_img.AttachGrabResultBuffer(grab)
-            # temp_img = pylon.PylonImage(grab)
-            img = grab.GetArray()
-            print("Got one image.")
+#         temp_img = pylon.PylonImage()
+#         with self.parent.camera.GrabOne(1000) as grab:
+#             temp_img.AttachGrabResultBuffer(grab)
+#             # temp_img = pylon.PylonImage(grab)
+#             img = grab.GetArray()
+#             print("Got one image.")
             
-            self.label.setImage(img)
-            temp_img.Release()
+#             self.label.setImage(img)
+#             temp_img.Release()
 
-    def drawPoint(self, point, pixmap):
-        painter = QPainter(pixmap)
-        pen = painter.pen()
-        pen.setWidth(2)
-        pen.setColor(QColor(0, 255, 0))
-        painter.setPen(pen)
-        brush = painter.brush()
-        brush.setColor(QColor(0, 255, 0))
-        brush.setStyle(Qt.BrushStyle.SolidPattern)
-        painter.setBrush(brush)
-        painter.drawEllipse(point, 4, 4)
-        painter.end()
-        self.label.setPixmap(pixmap)
+#     def drawPoint(self, point, pixmap):
+#         painter = QPainter(pixmap)
+#         pen = painter.pen()
+#         pen.setWidth(2)
+#         pen.setColor(QColor(0, 255, 0))
+#         painter.setPen(pen)
+#         brush = painter.brush()
+#         brush.setColor(QColor(0, 255, 0))
+#         brush.setStyle(Qt.BrushStyle.SolidPattern)
+#         painter.setBrush(brush)
+#         painter.drawEllipse(point, 4, 4)
+#         painter.end()
+#         self.label.setPixmap(pixmap)
     
-    @Slot()
-    def accept(self):
-        calibrationParams = list(
-            [
-            self.event_filter.p1.toTuple(),
-            self.event_filter.p2.toTuple(),
-            self.event_filter.p3.toTuple(),
-            self.event_filter.p4.toTuple(),
-            self.event_filter.p5.toTuple()
-            ]
-        )
-        if None not in calibrationParams:
-            cal = self.calibrate(calibrationParams)
-            self.calibrationFinished.emit(cal)
+#     @Slot()
+#     def accept(self):
+#         calibrationParams = list(
+#             [
+#             self.event_filter.p1.toTuple(),
+#             self.event_filter.p2.toTuple(),
+#             self.event_filter.p3.toTuple(),
+#             self.event_filter.p4.toTuple(),
+#             self.event_filter.p5.toTuple()
+#             ]
+#         )
+#         if None not in calibrationParams:
+#             cal = self.calibrate(calibrationParams)
+#             self.calibrationFinished.emit(cal)
 
-        return super().accept()
+#         return super().accept()
 
-    @Slot()
-    def reject(self):
-        return super().reject()
+#     @Slot()
+#     def reject(self):
+#         return super().reject()
     
-    def calibrate(self, points:list) -> tuple:
-        # Receive a list of tuples, representing the coordinates (x, y) chosen in the calibration dialog
-        # Sort the points in the x direction. This will give us the left and right points
-        x_sorted = sorted(points, key=lambda p: p[0])
-        print('p3=', x_sorted[0])
-        print('p4=', x_sorted[-1])
+#     def calibrate(self, points:list) -> tuple:
+#         # Receive a list of tuples, representing the coordinates (x, y) chosen in the calibration dialog
+#         # Sort the points in the x direction. This will give us the left and right points
+#         x_sorted = sorted(points, key=lambda p: p[0])
+#         print('p3=', x_sorted[0])
+#         print('p4=', x_sorted[-1])
 
-        # Sort in the y direction. This will give us the top and bottom points
-        y_sorted = sorted(points, key=lambda p: p[1])
-        print('p1=', y_sorted[0])
-        print('p2=', y_sorted[-1])
+#         # Sort in the y direction. This will give us the top and bottom points
+#         y_sorted = sorted(points, key=lambda p: p[1])
+#         print('p1=', y_sorted[0])
+#         print('p2=', y_sorted[-1])
 
-        # Save them in a list
-        sorted_points = [y_sorted[0], y_sorted[-1], x_sorted[0], x_sorted[-1]]
+#         # Save them in a list
+#         sorted_points = [y_sorted[0], y_sorted[-1], x_sorted[0], x_sorted[-1]]
 
-        # Find the remaining element. Below code is shorthand for this:
-        # for p in points:
-        #     if p not in sorted_points:
-        #         center_point = p
-        center_point, = (p for p in points if p not in sorted_points)
-        print('p5=', center_point)
+#         # Find the remaining element. Below code is shorthand for this:
+#         # for p in points:
+#         #     if p not in sorted_points:
+#         #         center_point = p
+#         center_point, = (p for p in points if p not in sorted_points)
+#         print('p5=', center_point)
 
-        # Calculate distances
-        d = [dist(center_point, p) for p in sorted_points]
-        print('distances from the central point: ', d)
-        y_cal = (d[0] + d[1]) / 2
-        x_cal = (d[2] + d[3]) / 2
-        print(
-            f'cal of x: {x_cal}\n'
-            f'cal of y: {y_cal}'
-        )
-        return (x_cal, y_cal)
+#         # Calculate distances
+#         d = [dist(center_point, p) for p in sorted_points]
+#         print('distances from the central point: ', d)
+#         y_cal = (d[0] + d[1]) / 2
+#         x_cal = (d[2] + d[3]) / 2
+#         print(
+#             f'cal of x: {x_cal}\n'
+#             f'cal of y: {y_cal}'
+#         )
+#         return (x_cal, y_cal)
 
 
 class HistogramsWidget(QWidget):
@@ -662,124 +661,6 @@ class PowerSupplyWidget(QWidget):
             return True
 
         return super().eventFilter(source, event)
-
-
-class LiveCameraFeedWidget(QGraphicsView):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.parent = parent
-        self.pxmap = None
-        self.scale_factor = 1.25
-        self.p_i = None
-        self.p_f = None
-        self.drawing = False
-        self.roi = False
-        self.roi_draw = True
-        self.p_cross_x40 = None
-        self.p_cross_x16 = None
-        self.draw_crosshair_x40 = False
-        self.draw_crosshair_x16 = False
-        self.pts_scan_x40 = []
-        self.pts_scan_x16 = []
-        self.draw_scan_x40 = False
-        self.draw_scan_x16 = False
-        self.pen_width = None
-        self.font_width = None
-        
-        self.setMinimumSize(642, 482)
-        self.setSizePolicy(
-            QSizePolicy.Policy.MinimumExpanding,
-            QSizePolicy.Policy.MinimumExpanding
-        )
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
-        self.setResizeAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
-        self.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self.viewport().setCursor(Qt.CursorShape.CrossCursor)
-        self.graphics_scene = QGraphicsScene(self)
-        self.graphics_scene.setSceneRect(QRectF(0, 0, 640, 480))
-        self.setScene(self.graphics_scene)
-
-        self.pixmap = QGraphicsPixmapItem()
-        self.pixmap.setShapeMode(QGraphicsPixmapItem.ShapeMode.BoundingRectShape)
-        self.graphics_scene.addItem(self.pixmap)
-
-    @Slot(QImage)
-    def setImage(self, image: QImage) -> None:
-        self.pixmap.setPixmap(self.drawRegions(QPixmap.fromImage(image)).scaled(self.viewport().size(), Qt.AspectRatioMode.KeepAspectRatio))
-        self.pixmap.setPos(self.scene().sceneRect().center() - self.pixmap.boundingRect().center())
-
-    def drawRegions(self, pixmap: QPixmap) -> QPixmap:
-        if self.roi_draw or self.draw_crosshair_x40 or self.draw_crosshair_x16 or self.draw_scan_x40 or self.draw_scan_x16:
-            with QPainter(pixmap) as painter:
-                if self.pen_width is None or self.font_width is None:
-                    self.pen_width = round(self.parent.camera.width * 0.004)
-                    self.font_width = round(self.parent.camera.width * 0.015)
-                painter.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.TextAntialiasing)
-                pen = painter.pen()
-                pen.setWidth(self.pen_width)
-                font = painter.font()
-                font.setPointSize(self.font_width)
-                painter.setFont(font)
-
-                if self.p_i and self.p_f and self.roi_draw:
-                    self.drawROI(painter, pen)
-                if self.p_cross_x40 is not None and self.draw_crosshair_x40:
-                    self.drawCrosshairX40(painter, pen)
-                if self.p_cross_x16 is not None and self.draw_crosshair_x16:
-                    self.drawCrosshairX16(painter, pen)
-                if self.pts_scan_x40 and self.draw_scan_x40:
-                    self.drawScanRegionX40(painter, pen)
-                if self.pts_scan_x16 and self.draw_scan_x16:
-                    self.drawScanRegionX16(painter, pen)
-        return pixmap
-
-    def drawROI(self, painter: QPainter, pen: QPen) -> None:
-        pen.setColor(QColor(0, 255, 0))
-        painter.setPen(pen)
-        painter.drawRect(self.p_i.x(), self.p_i.y(), self.p_f.x() - self.p_i.x(), self.p_f.y() - self.p_i.y())
-        painter.drawText(self.p_i.x() + 1.5 * self.pen_width, self.p_i.y() - self.font_width, "ROI")
-
-    def drawCrosshairX40(self, painter: QPainter, pen: QPen) -> None:
-        pen.setColor(QColor(255, 0, 255))
-        painter.setPen(pen)
-        painter.drawLine(0, self.p_cross_x40.y(), self.parent.camera.width, self.p_cross_x40.y())
-        painter.drawLine(self.p_cross_x40.x(), 0, self.p_cross_x40.x(), self.parent.camera.height)
-        painter.drawText(self.p_cross_x40.x() + 1.5 * self.pen_width, self.font_width + 5, "x40")
-
-    def drawCrosshairX16(self, painter: QPainter, pen: QPen) -> None:
-        pen.setColor(QColor(255, 0, 0))
-        painter.setPen(pen)
-        painter.drawLine(0, self.p_cross_x16.y(), self.parent.camera.width, self.p_cross_x16.y())
-        painter.drawLine(self.p_cross_x16.x(), 0, self.p_cross_x16.x(), self.parent.camera.height)
-        painter.drawText(self.p_cross_x16.x() + 1.5 * self.pen_width, self.font_width + 5, "x16")
-
-    def drawScanRegionX40(self, painter: QPainter, pen: QPen) -> None:
-        pen.setColor(QColor(255, 255, 0))
-        painter.setPen(pen)
-        if len(self.pts_scan_x40) < 4:
-            painter.drawPoints(self.pts_scan_x40)
-        else:
-            polygon = QPolygon(self.pts_scan_x40)
-            painter.drawPolygon(polygon)
-            painter.drawText(polygon.boundingRect().topLeft() + QPoint(2 * self.pen_width, -self.font_width), "Scan x40")
-
-    def drawScanRegionX16(self, painter: QPainter, pen: QPen) -> None:
-        pen.setColor(QColor("orange"))
-        painter.setPen(pen)
-        if len(self.pts_scan_x16) < 4:
-            painter.drawPoints(self.pts_scan_x16)
-        else:
-            polygon = QPolygon(self.pts_scan_x16)
-            painter.drawPolygon(self.pts_scan_x16)
-            painter.drawText(polygon.boundingRect().topLeft() + QPoint(2 * self.pen_width, -self.font_width), "Scan x16")
-
-    def resizeEvent(self, event):
-        self.scene().setSceneRect(self.scene().itemsBoundingRect())
-        super().resizeEvent(event)
-
-    def sizeHint(self):
-        return QSize(642, 482)
 
 
 if __name__ == "__main__":

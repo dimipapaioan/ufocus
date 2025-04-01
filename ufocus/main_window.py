@@ -33,11 +33,12 @@ from ps_controller import PSController
 import resources  # noqa: F401
 from settings_manager import SettingsManager
 from widgets.widgets import (
-    LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
+    LiveCameraFeedWidget, PowerSupplyWidget, 
     PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
     FullScreenWindow
 )
 from widgets.logging_widget import LoggerWidget
+from widgets.image_processing_widget import ImageProcessingWidget
 from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """

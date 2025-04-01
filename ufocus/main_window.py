@@ -32,13 +32,12 @@ from minimizer import Minimizer
 from ps_controller import PSController
 import resources  # noqa: F401
 from settings_manager import SettingsManager
-from widgets.widgets import (
-    PowerSupplyWidget, PlottingWidget, HistogramsWidget
-)
+from widgets.widgets import PlottingWidget, HistogramsWidget
 from widgets.logging_widget import LoggerWidget
 from widgets.live_camera_feed_widget import LiveCameraFeedWidget
 from widgets.image_processing_widget import ImageProcessingWidget
 from widgets.fullscreen_widget import FullScreenWidget
+from widgets.power_supply_widget import PowerSupplyWidget
 from workers.camera_worker_base import CameraWorker
 
 CUSTOM_STYLESHEET = """

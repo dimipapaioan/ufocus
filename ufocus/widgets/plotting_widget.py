@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 import PySide6QtAds as QtAds
-from pyqtgraph import PlotWidget, mkPen, mkBrush
+from pyqtgraph import PlotWidget, mkPen, mkBrush, getConfigOption
 
 from dirs import BASE_DATA_PATH
 from .floating_widget import FloatingWidget
@@ -51,6 +51,8 @@ class PlottingWidget(QWidget):
         super().__init__(parent)
         self.parent = parent
         self.data = RunData()
+        legend_pen = getConfigOption("foreground")
+        legend_brush = getConfigOption("background")
 
         QtAds.CDockManager.setConfigFlags(QtAds.CDockManager.DefaultNonOpaqueConfig)
         QtAds.CDockManager.setConfigFlag(
@@ -67,7 +69,7 @@ class PlottingWidget(QWidget):
         self.graph1.showAxes(True)
         self.graph1.setTitle("Ellipse Axes")
         self.graph1.setLabels(left="Length [px]", bottom="Count")
-        self.graph1.addLegend(pen="k", brush="w", labelTextSize="8pt", colCount=2)
+        self.graph1.addLegend(pen=legend_pen, brush=legend_brush, labelTextSize="8pt", colCount=2)
         self.item1 = self.graph1.plot(
             self.data.major,
             pen=mkPen({"color": "#1f77b4", "width": 2}),
@@ -101,7 +103,7 @@ class PlottingWidget(QWidget):
         self.graph2.showAxes(True)
         self.graph2.setTitle("Quadrupole Currents")
         self.graph2.setLabels(left="Current [A]", bottom="Count")
-        self.graph2.addLegend(pen="k", brush="w", labelTextSize="8pt", colCount=2)
+        self.graph2.addLegend(pen=legend_pen, brush=legend_brush, labelTextSize="8pt", colCount=2)
         self.item3 = self.graph2.plot(
             self.data.current1,
             pen=mkPen({"color": "#1f77b4", "width": 2}),

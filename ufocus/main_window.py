@@ -4,7 +4,9 @@ import logging
 import datetime as dt
 from typing import Optional, Union
 
+import serial
 from pypylon import pylon
+from pyqtgraph import setConfigOptions
 from PySide6.QtCore import (
     Qt,
     Slot,
@@ -47,7 +49,6 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QLineEdit,
 )
-import serial
 from serial.tools.list_ports import comports
 
 import resources  # noqa: F401
@@ -1401,6 +1402,19 @@ def main() -> int:
     app.setStyle('Fusion')
     app.setWheelScrollLines(1)
     app.setStyleSheet(CUSTOM_STYLESHEET)
+
+    if app.styleHints().colorScheme() is Qt.ColorScheme.Dark:
+        setConfigOptions(
+            antialias=True,
+            background='#343434', 
+            foreground='whitesmoke',
+        )
+    else:
+        setConfigOptions(
+            antialias=True,
+            background='w', 
+            foreground='k',
+        )
 
     logger.info("μFocus application started")
 

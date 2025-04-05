@@ -49,6 +49,7 @@ from PySide6.QtWidgets import (
 import serial
 from serial.tools.list_ports import comports
 
+import resources  # noqa: F401
 from cameras.camera_base import Camera
 from cameras.basler_camera import BaslerCamera
 from cameras.builtin_camera import BuiltInCamera
@@ -58,8 +59,8 @@ from event_filter import EventFilter
 from image_processing import ImageProcessing
 from minimizer import Minimizer
 from ps_controller import PSController
-import resources  # noqa: F401
 from settings_manager import SettingsManager
+from version import get_version
 from widgets import (
     FullScreenWidget,
     HistogramsWidget,
@@ -70,6 +71,9 @@ from widgets import (
     PowerSupplyWidget,
 )
 from workers.camera_worker_base import CameraWorker
+
+
+__version__ = get_version()
 
 
 CUSTOM_STYLESHEET = """
@@ -132,14 +136,16 @@ CUSTOM_STYLESHEET = """
     }
 """
 
-ABOUT = """
+
+ABOUT = f"""
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.3.1</p>
+<p>Version: {__version__}</p>
 <p>Author: Dimitrios Papaioannou
-<a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
+<a href="mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com</a> </p>
 <p>GitHub:
-<a href = "https://github.com/dimipapaioan/ufocus"> dimipapaioan </a> </p>
+<a href="https://github.com/dimipapaioan/ufocus"> dimipapaioan</a> </p>
 """
+
 
 logger = logging.getLogger(__name__)
 

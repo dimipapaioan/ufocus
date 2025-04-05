@@ -76,7 +76,7 @@ jobs:
     
     # Compile Inno Setup installer
     - name: Create Installer with Inno Setup
-      uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.5
       with:
         path: installer.iss
       env:

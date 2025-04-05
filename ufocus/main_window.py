@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import datetime as dt
 from typing import Optional, Union
 
 from pypylon import pylon
@@ -60,7 +61,7 @@ from image_processing import ImageProcessing
 from minimizer import Minimizer
 from ps_controller import PSController
 from settings_manager import SettingsManager
-from version import get_version
+from version import get_version, get_latest_version
 from widgets import (
     FullScreenWidget,
     HistogramsWidget,
@@ -520,12 +521,37 @@ class MainWindow(QMainWindow):
         submenuHistograms.addAction(self.histograms.dock_widget3.toggleViewAction())
 
         menuAbout = menu.addMenu("About")
-        menuAbout.addAction('About', self.about)
-        menuAbout.addAction('About Qt', QApplication.aboutQt)
+        menuAbout.addAction("About", self.about)
+        menuAbout.addAction("Check for updates", self.onCheckForUpdates)
+        menuAbout.addAction("About Qt", QApplication.aboutQt)
 
     @Slot()
-    def about(self):
+    def about(self) -> None:
         QMessageBox.about(self, "About μFocus", ABOUT)
+    
+    @Slot()
+    def onCheckForUpdates(self) -> None:
+        latest_version, released_on = get_latest_version()
+        
+        if latest_version is None:
+            QMessageBox.critical(
+                self,
+                "Error checking for updates",
+                "<p><b><font size='+1'>Could not check for updates.</font size='+1'></b></p>"
+                "</p>An HTTPS or URL error occured while checking for updates.</p>"
+                "<p>Alternatively, check for the <a href='https://github.com/dimipapaioan/ufocus/releases/latest'> latest release</a> of μFocus on GitHub.</p>",
+            )
+        elif __version__ < latest_version:
+            released_on = dt.datetime.fromisoformat(released_on).date().isoformat()
+            QMessageBox.information(
+                self,
+                "Update available",
+                "<p><b><font size='+1'>A newer version of μFocus is available.</font size='+1'></b></p>"
+                f"</p>μFocus v{__version__} is installed but v{latest_version} is available (released on {released_on}).</p>"
+                "<p>Download the <a href='https://github.com/dimipapaioan/ufocus/releases/latest'> latest release</a> from GitHub.</p>",
+            )
+        else:
+            QMessageBox.information(self, "Up to date", "You are running the latest version of μFocus.")
     
     @Slot()
     def zoom_in(self):

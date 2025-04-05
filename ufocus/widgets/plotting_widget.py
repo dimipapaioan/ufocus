@@ -5,21 +5,21 @@ from datetime import date
 from itertools import zip_longest
 from math import nan
 
-from PySide6.QtCore import Slot, QSize
-from PySide6.QtGui import QPixmap, QAction, QIcon
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QToolBar,
-    QMessageBox,
-)
 import PySide6QtAds as QtAds
-from pyqtgraph import PlotWidget, mkPen, mkBrush, getConfigOption
+from pyqtgraph import PlotWidget, getConfigOption, mkBrush, mkPen
+from PySide6.QtCore import QSize, Slot
+from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtWidgets import (
+    QMessageBox,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
 
-from dirs import BASE_DATA_PATH
+from ..dirs import BASE_DATA_PATH
+from ..image_processing import DetectedEllipse
+from . import resources  # noqa: F401
 from .floating_widget import FloatingWidget
-from image_processing import DetectedEllipse
-import resources  # noqa: F401
 
 
 @dataclass

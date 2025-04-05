@@ -1,8 +1,7 @@
 import json
+import logging
 import urllib.error
 import urllib.request
-import logging
-
 
 APP_GH_API_URL = "https://api.github.com/repos/dimipapaioan/ufocus/releases/latest"
 VERSION_INFO = (2, 3, 1)

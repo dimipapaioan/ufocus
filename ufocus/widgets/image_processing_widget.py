@@ -1,29 +1,29 @@
 from numpy import ndarray
 from PySide6.QtCore import (
+    QSize,
     Qt,
     Slot,
-    QSize,
 )
 from PySide6.QtGui import (
-    QImage,
-    QPixmap,
     QAction,
     QIcon,
+    QImage,
+    QPixmap,
 )
 from PySide6.QtWidgets import (
-    QWidget,
-    QLabel,
-    QSizePolicy,
-    QVBoxLayout,
-    QToolBar,
     QFormLayout,
     QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
 
+from ..image_processing import DetectedEllipse
+from ..minimizer import ObjectiveFunctionInfo, PSCurrentsInfo
+from . import resources  # noqa: F401
 from .floating_widget import FloatingWidget
-from image_processing import DetectedEllipse
-from minimizer import PSCurrentsInfo, ObjectiveFunctionInfo
-import resources  # noqa: F401
 
 
 class ImageProcessingQLabel(QLabel):

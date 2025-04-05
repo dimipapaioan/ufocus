@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from PySide6.QtCore import (
-    Qt, QObject, Signal, QPoint, QPointF
-    )
+from PySide6.QtCore import QObject, QPoint, QPointF, Qt, Signal
 from PySide6.QtWidgets import QGraphicsSceneMouseEvent
 
-from settings_manager import SettingsManager
+from .settings_manager import SettingsManager
 
 
 class EventFilter(QObject):
@@ -70,7 +68,7 @@ class EventFilter(QObject):
                                 event.ignore()
 
                         if event.modifiers() == Qt.KeyboardModifier.NoModifier:
-                            if self.widget.roi == False:
+                            if not self.widget.roi:
                                 self.widget.drawing = True
                                 self.widget.p_i = position.toPoint() * self.ratio_height
                                 # self.widget.p_i = QPoint(
@@ -111,7 +109,7 @@ class EventFilter(QObject):
                             self.settings_manager.saveUserSettings()
                     # print(f'clicked, {self.p_i}, {self.p_f}')
 
-            if event.type() == QGraphicsSceneMouseEvent.Type.GraphicsSceneMouseMove and self.widget.drawing == True:
+            if event.type() == QGraphicsSceneMouseEvent.Type.GraphicsSceneMouseMove and self.widget.drawing:
                 # Correct the position of the event
                 position = self.correctPosition(event)
 
@@ -146,7 +144,7 @@ class EventFilter(QObject):
                 # Correct the position of the event
                 position = self.correctPosition(event)
 
-                if event.button() == Qt.MouseButton.LeftButton and self.widget.roi == False and self.widget.drawing == True:
+                if event.button() == Qt.MouseButton.LeftButton and not self.widget.roi and self.widget.drawing:
                     self.widget.drawing = False
                     self.widget.roi = True
                     self.settings_manager.user_settings['roi'] = self.widget.roi

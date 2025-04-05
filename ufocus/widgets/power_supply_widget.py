@@ -1,16 +1,16 @@
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QMouseEvent
 from PySide6.QtWidgets import (
-    QWidget,
-    QLabel,
-    QSizePolicy,
-    QLCDNumber,
-    QPushButton,
-    QGroupBox,
-    QGridLayout,
-    QFrame,
     QDial,
     QDoubleSpinBox,
+    QFrame,
+    QGridLayout,
+    QGroupBox,
+    QLabel,
+    QLCDNumber,
+    QPushButton,
+    QSizePolicy,
+    QWidget,
 )
 
 

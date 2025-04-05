@@ -3,14 +3,13 @@
 import logging
 import time
 
+from numpy import ndarray
 from pypylon import pylon
 from pypylon.genicam import GenericException
-from numpy import ndarray
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtGui import QImage
 
-from workers.camera_worker_base import CameraWorker
-
+from .camera_worker_base import CameraWorker
 
 logger = logging.getLogger(__name__)
 

@@ -5,9 +5,9 @@ from typing import Optional
 
 from pypylon import pylon
 
-from cameras.camera_base import Camera
-from cameras.exceptions import CameraConnectionError
-from workers.basler_camera_worker import BaslerCameraWorker
+from ..workers.basler_camera_worker import BaslerCameraWorker
+from .camera_base import Camera
+from .exceptions import CameraConnectionError
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging.config
-from dirs import LOGS_PATH
+
+from .dirs import LOGS_PATH
 
 LOGGING_CONFIG = {
     "version": 1,

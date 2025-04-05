@@ -1,13 +1,13 @@
-from PySide6.QtCore import Qt, Slot, QSize, QRectF, QPoint
-from PySide6.QtGui import QImage, QColor, QPixmap, QPainter, QPen, QPolygon
+from PySide6.QtCore import QPoint, QRectF, QSize, Qt, Slot
+from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap, QPolygon
 from PySide6.QtWidgets import (
-    QSizePolicy,
-    QGraphicsView,
-    QGraphicsScene,
     QGraphicsPixmapItem,
+    QGraphicsScene,
+    QGraphicsView,
+    QSizePolicy,
 )
 
-import resources  # noqa: F401
+from . import resources  # noqa: F401
 
 
 class LiveCameraFeedWidget(QGraphicsView):

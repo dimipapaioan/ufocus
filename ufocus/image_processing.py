@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import logging
 from dataclasses import dataclass, field
 from datetime import date
-from math import nan, pi, sqrt
+import logging
+from math import pi, sqrt, nan
 
 import cv2
-from numpy import ndarray, save, zeros
-from PySide6.QtCore import QEventLoop, QObject, QRunnable, Signal, Slot
+from numpy import ndarray, zeros, save
+from PySide6.QtCore import (
+    QObject, Signal, Slot, QEventLoop, QRunnable
+)
 
-from .dirs import BASE_DATA_PATH
-from .settings_manager import SettingsManager
+
+from dirs import BASE_DATA_PATH
+from settings_manager import SettingsManager
 
 # Generate the appropriate paths for saving data
 DATA_PATH = BASE_DATA_PATH / date.today().isoformat()

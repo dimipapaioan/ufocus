@@ -6,7 +6,7 @@ from threading import Lock
 
 from PySide6.QtCore import QPoint
 
-from .dirs import BASE_PATH
+from dirs import BASE_PATH
 
 DEFAULT_SETTINGS = {
     "spinboxImagesToAccumulate": 30,

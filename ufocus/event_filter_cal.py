@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
 
 from PySide6.QtCore import (
-    QEvent,
-    QObject,
-    QPoint,
-    Qt,
-    Signal,
-)
+    Qt, QObject, Signal, QEvent, QPoint,
+    )
+
 from PySide6.QtGui import (
     QMouseEvent,
 )
-
 
 class EventFilterCal(QObject):
     

@@ -1,69 +1,69 @@
 # -*- coding: utf-8 -*-
 
-import datetime as dt
 import logging
+import datetime as dt
 from typing import Optional, Union
 
 import serial
 from pypylon import pylon
 from pyqtgraph import setConfigOptions
 from PySide6.QtCore import (
-    QMutex,
+    Qt,
+    Slot,
     QPoint,
     QSize,
-    Qt,
     QThreadPool,
+    QMutex,
     QWaitCondition,
-    Slot,
 )
 from PySide6.QtGui import (
     QAction,
-    QColor,
     QIcon,
-    QImage,
-    QPainter,
     QPixmap,
+    QColor,
+    QPainter,
     QTransform,
+    QImage,
 )
 from PySide6.QtWidgets import (
     QApplication,
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QFileDialog,
-    QFormLayout,
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMainWindow,
-    QMessageBox,
     QPushButton,
     QScrollArea,
-    QSlider,
-    QSpinBox,
-    QStatusBar,
-    QTabWidget,
-    QToolBar,
     QVBoxLayout,
+    QHBoxLayout,
     QWidget,
+    QCheckBox,
+    QStatusBar,
+    QMessageBox,
+    QTabWidget,
+    QGridLayout,
+    QGroupBox,
+    QSpinBox,
+    QDoubleSpinBox,
+    QComboBox,
+    QSlider,
+    QToolBar,
+    QFormLayout,
+    QFileDialog,
+    QLineEdit,
 )
 from serial.tools.list_ports import comports
 
-from . import resources  # noqa: F401
-from .cameras.basler_camera import BaslerCamera
-from .cameras.builtin_camera import BuiltInCamera
-from .cameras.camera_base import Camera
-from .cameras.exceptions import CameraConnectionError
-from .dirs import BASE_PATH
-from .event_filter import EventFilter
-from .image_processing import ImageProcessing
-from .minimizer import Minimizer
-from .ps_controller import PSController
-from .settings_manager import SettingsManager
-from .version import get_latest_version, get_version
-from .widgets import (
+import resources  # noqa: F401
+from cameras.camera_base import Camera
+from cameras.basler_camera import BaslerCamera
+from cameras.builtin_camera import BuiltInCamera
+from cameras.exceptions import CameraConnectionError
+from dirs import BASE_PATH
+from event_filter import EventFilter
+from image_processing import ImageProcessing
+from minimizer import Minimizer
+from ps_controller import PSController
+from settings_manager import SettingsManager
+from version import get_version, get_latest_version
+from widgets import (
     FullScreenWidget,
     HistogramsWidget,
     ImageProcessingWidget,
@@ -72,7 +72,8 @@ from .widgets import (
     PlottingWidget,
     PowerSupplyWidget,
 )
-from .workers.camera_worker_base import CameraWorker
+from workers.camera_worker_base import CameraWorker
+
 
 __version__ = get_version()
 

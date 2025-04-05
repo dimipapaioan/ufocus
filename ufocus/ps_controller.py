@@ -5,9 +5,12 @@ from queue import Queue
 from re import compile
 from threading import Thread
 
-from PySide6.QtCore import QEventLoop, QObject, QRunnable, QTimer, Signal, Slot
+from PySide6.QtCore import (
+    QObject, Signal, Slot, QRunnable, QTimer, QEventLoop
+)
 
-from .genesys import Genesys
+from genesys import Genesys
+
 
 logger = logging.getLogger(__name__)
 

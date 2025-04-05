@@ -4,9 +4,9 @@ from typing import Optional
 
 from cv2 import VideoCapture, error
 
-from ..workers.builtin_camera_worker import BuiltInCameraWorker
-from .camera_base import Camera
-from .exceptions import CameraConnectionError
+from cameras.camera_base import Camera
+from cameras.exceptions import CameraConnectionError
+from workers.builtin_camera_worker import BuiltInCameraWorker
 
 logger = logging.getLogger(__name__)
 

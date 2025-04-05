@@ -1265,8 +1265,6 @@ class MainWindow(QMainWindow):
             self.pscontroller.signals.serialConnectionSuccessful.connect(self.onSerialConnectionSuccess)
             self.psLCD1.currentDial.valueChanged.connect(self.pscontroller.setPS1Current)
             self.psLCD2.currentDial.valueChanged.connect(self.pscontroller.setPS2Current)
-            self.statusPS1.setText("PS1: ON")
-            self.statusPS2.setText("PS2: ON")
         else:
             # if self.ps1.get_power_status() == "ON" or self.ps2.get_power_status() == "ON":
             # print(self.pscontroller.ps2.set_power_status("OFF"))

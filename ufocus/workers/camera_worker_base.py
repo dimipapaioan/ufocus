@@ -15,3 +15,4 @@ class CameraWorker(QRunnable):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.signals = CameraWorkerSignals(parent)
+        self.manually_terminated = False

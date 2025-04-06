@@ -4,7 +4,7 @@ import urllib.error
 import urllib.request
 
 APP_GH_API_URL = "https://api.github.com/repos/dimipapaioan/ufocus/releases/latest"
-VERSION_INFO = (2, 3, 1)
+VERSION_INFO = (2, 3, 2)
 
 
 logger = logging.getLogger(__name__)

@@ -1,15 +1,15 @@
 import logging
 
 from PySide6.QtCore import (
+    QObject,
     Signal,
     Slot,
-    QObject,
 )
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
     QPlainTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 

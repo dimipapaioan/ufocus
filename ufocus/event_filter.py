@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PySide6.QtCore import (
-    Qt, QObject, Signal, QPoint, QPointF
-    )
+from PySide6.QtCore import QObject, QPoint, QPointF, Qt, Signal
 from PySide6.QtWidgets import QGraphicsSceneMouseEvent
 
 from settings_manager import SettingsManager

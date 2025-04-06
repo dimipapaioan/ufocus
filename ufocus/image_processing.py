@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date
-import logging
-from math import pi, sqrt, nan
+from math import nan, pi, sqrt
 
 import cv2
-from numpy import ndarray, zeros, save
-from PySide6.QtCore import (
-    QObject, Signal, Slot, QEventLoop, QRunnable
-)
-
+from numpy import ndarray, save, zeros
+from PySide6.QtCore import QEventLoop, QObject, QRunnable, Signal, Slot
 
 from dirs import BASE_DATA_PATH
 from settings_manager import SettingsManager

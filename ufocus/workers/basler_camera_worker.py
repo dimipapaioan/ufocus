@@ -3,14 +3,13 @@
 import logging
 import time
 
+from numpy import ndarray
 from pypylon import pylon
 from pypylon.genicam import GenericException
-from numpy import ndarray
 from PySide6.QtCore import QObject, Signal, Slot
 from PySide6.QtGui import QImage
 
 from workers.camera_worker_base import CameraWorker
-
 
 logger = logging.getLogger(__name__)
 
@@ -113,7 +112,7 @@ class ConfigurationEventPrinter(pylon.ConfigurationEventHandler):
         logger.debug(f"OnDestroy event for device {camera.GetDeviceInfo().GetModelName()}")
 
     def OnDestroyed(self, camera):
-        logger.debug(f"OnDestroyed event")
+        logger.debug("OnDestroyed event")
 
     def OnDetach(self, camera):
         logger.debug(f"OnDetach event for device {camera.GetDeviceInfo().GetModelName()}")

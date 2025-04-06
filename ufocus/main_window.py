@@ -1,60 +1,60 @@
 # -*- coding: utf-8 -*-
 
-import logging
 import datetime as dt
+import logging
 from typing import Optional, Union
 
 import serial
 from pypylon import pylon
 from pyqtgraph import setConfigOptions
 from PySide6.QtCore import (
-    Qt,
-    Slot,
+    QMutex,
     QPoint,
     QSize,
+    Qt,
     QThreadPool,
-    QMutex,
     QWaitCondition,
+    Slot,
 )
 from PySide6.QtGui import (
     QAction,
-    QIcon,
-    QPixmap,
     QColor,
-    QPainter,
-    QTransform,
+    QIcon,
     QImage,
+    QPainter,
+    QPixmap,
+    QTransform,
 )
 from PySide6.QtWidgets import (
     QApplication,
-    QLabel,
-    QMainWindow,
-    QPushButton,
-    QScrollArea,
-    QVBoxLayout,
-    QHBoxLayout,
-    QWidget,
     QCheckBox,
-    QStatusBar,
-    QMessageBox,
-    QTabWidget,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
     QGridLayout,
     QGroupBox,
-    QSpinBox,
-    QDoubleSpinBox,
-    QComboBox,
-    QSlider,
-    QToolBar,
-    QFormLayout,
-    QFileDialog,
+    QHBoxLayout,
+    QLabel,
     QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QStatusBar,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
 from serial.tools.list_ports import comports
 
 import resources  # noqa: F401
-from cameras.camera_base import Camera
 from cameras.basler_camera import BaslerCamera
 from cameras.builtin_camera import BuiltInCamera
+from cameras.camera_base import Camera
 from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
@@ -62,7 +62,7 @@ from image_processing import ImageProcessing
 from minimizer import Minimizer
 from ps_controller import PSController
 from settings_manager import SettingsManager
-from version import get_version, get_latest_version
+from version import get_latest_version, get_version
 from widgets import (
     FullScreenWidget,
     HistogramsWidget,
@@ -73,7 +73,6 @@ from widgets import (
     PowerSupplyWidget,
 )
 from workers.camera_worker_base import CameraWorker
-
 
 __version__ = get_version()
 

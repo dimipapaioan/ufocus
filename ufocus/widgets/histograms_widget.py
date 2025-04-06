@@ -1,16 +1,16 @@
-from numpy import ndarray
-from PySide6.QtCore import Slot, QSize
-from PySide6.QtGui import QPixmap, QAction, QIcon
-from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QToolBar,
-)
 import PySide6QtAds as QtAds
+from numpy import ndarray
 from pyqtgraph import PlotWidget, mkPen
+from PySide6.QtCore import QSize, Slot
+from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtWidgets import (
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
 
-from .floating_widget import FloatingWidget
 import resources  # noqa: F401
+from widgets.floating_widget import FloatingWidget
 
 
 class HistogramsWidget(QWidget):

@@ -4,7 +4,6 @@ import logging
 import time
 
 import cv2
-from numpy import ndarray
 from PySide6.QtCore import Slot
 from PySide6.QtGui import QImage
 
@@ -44,7 +43,7 @@ class BuiltInCameraWorker(CameraWorker):
                         if img.ndim == 2:
                             h, w = img.shape
                             img = QImage(
-                                image.data, w, h, w, QImage.Format.Format_Grayscale8
+                                img.data, w, h, w, QImage.Format.Format_Grayscale8
                             )
                         elif img.ndim == 3:
                             h, w, ch = img.shape

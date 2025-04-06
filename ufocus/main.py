@@ -2,7 +2,7 @@
 
 import logging.config
 
-from dirs import BASE_PATH, BASE_DATA_PATH, LOGS_PATH, create_dir
+from dirs import BASE_DATA_PATH, BASE_PATH, LOGS_PATH, create_dir
 
 for path in (BASE_PATH, BASE_DATA_PATH, LOGS_PATH):
     create_dir(path)

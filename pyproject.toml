@@ -36,6 +36,7 @@ ufocus = "ufocus.main:run_main"
 
 [tool.ruff]
 target-version = "py310"
+src = ["ufocus"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I"]

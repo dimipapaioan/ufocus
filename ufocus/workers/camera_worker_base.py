@@ -1,5 +1,5 @@
 from numpy import ndarray
-from PySide6.QtCore import QObject, Signal, QRunnable
+from PySide6.QtCore import QObject, QRunnable, Signal
 from PySide6.QtGui import QImage
 
 
@@ -15,3 +15,4 @@ class CameraWorker(QRunnable):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.signals = CameraWorkerSignals(parent)
+        self.manually_terminated = False

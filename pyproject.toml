@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uFocus"
-version = "2.3.1"
+version = "2.3.2"
+dynamic = ["readme"]
 authors = [
     {name = "Dimitrios Papaioannou", email = "dimipapaioan@outlook.com"},
 ]
@@ -33,3 +34,13 @@ classifiers = [
 
 [project.scripts]
 ufocus = "ufocus.main:run_main"
+
+[tool.setuptools.dynamic]
+readme = {file = "README.md"}
+
+[tool.ruff]
+target-version = "py310"
+src = ["ufocus"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

@@ -1,43 +1,81 @@
 # -*- coding: utf-8 -*-
 
+import datetime as dt
 import logging
 from typing import Optional, Union
 
+import serial
 from pypylon import pylon
+from pyqtgraph import setConfigOptions
 from PySide6.QtCore import (
-    Qt, Slot, QPoint, QSize,
-    QThreadPool, QMutex, QWaitCondition,
+    QMutex,
+    QPoint,
+    QSize,
+    Qt,
+    QThreadPool,
+    QWaitCondition,
+    Slot,
 )
 from PySide6.QtGui import (
-    QAction, QIcon, QPixmap, QColor, QPainter, QTransform, QImage,
+    QAction,
+    QColor,
+    QIcon,
+    QImage,
+    QPainter,
+    QPixmap,
+    QTransform,
 )
 from PySide6.QtWidgets import (
-    QApplication, QLabel, QMainWindow, QPushButton, QScrollArea,
-    QVBoxLayout, QHBoxLayout, QWidget, QCheckBox, QStatusBar,
-    QMessageBox, QTabWidget, QGridLayout, QGroupBox, QSpinBox,
-    QDoubleSpinBox, QComboBox, QSlider, QToolBar, QFormLayout,
-    QFileDialog, QLineEdit,
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFormLayout,
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QScrollArea,
+    QSlider,
+    QSpinBox,
+    QStatusBar,
+    QTabWidget,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
-import serial
 from serial.tools.list_ports import comports
 
-from cameras.camera_base import Camera
+import resources  # noqa: F401
 from cameras.basler_camera import BaslerCamera
 from cameras.builtin_camera import BuiltInCamera
+from cameras.camera_base import Camera
 from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing import ImageProcessing
 from minimizer import Minimizer
 from ps_controller import PSController
-import resources  # noqa: F401
 from settings_manager import SettingsManager
+from version import get_latest_version, get_version
 from widgets import (
-    LiveCameraFeedWidget, ImageProcessingWidget, PowerSupplyWidget, 
-    PlottingWidget, HistogramsWidget, CameraCalibrationDialog,
-    FullScreenWindow, LoggerWidget
+    FullScreenWidget,
+    HistogramsWidget,
+    ImageProcessingWidget,
+    LiveCameraFeedWidget,
+    LoggerWidget,
+    PlottingWidget,
+    PowerSupplyWidget,
 )
 from workers.camera_worker_base import CameraWorker
+
+__version__ = get_version()
+
 
 CUSTOM_STYLESHEET = """
     QLCDNumber {
@@ -62,32 +100,32 @@ CUSTOM_STYLESHEET = """
         color: black;
     }
 
-    FullScreenWindow {
+    FullScreenWidget {
         background-color: black;
         padding: 2%;
         color: lightgrey;
     }
 
-    FullScreenWindow QWidget {
+    FullScreenWidget QWidget {
         background-color: black;
         padding: 2%;
         color: lightgrey;
     }
 
-    FullScreenWindow QToolButton {
+    FullScreenWidget QToolButton {
         border-radius: 4px;
         padding: 4%;
     }
 
-    FullScreenWindow QToolButton:hover {
+    FullScreenWidget QToolButton:hover {
         border: 1px solid #808080;
     }
 
-    FullScreenWindow QToolButton:hover:pressed {
+    FullScreenWidget QToolButton:hover:pressed {
         border: 1px solid #404040;
     }
 
-    FullScreenWindow QToolTip {
+    FullScreenWidget QToolTip {
         border: 1px solid lightgrey;
         padding: 2%;
         background-color: black;
@@ -99,14 +137,16 @@ CUSTOM_STYLESHEET = """
     }
 """
 
-ABOUT = """
+
+ABOUT = f"""
 <p><b><font size='+1'>The μFocus Application</font></b></p>
-<p>Version: 2.3.1</p>
+<p>Version: {__version__}</p>
 <p>Author: Dimitrios Papaioannou
-<a href = "mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com </a> </p>
+<a href="mailto: dimipapaioan@outlook.com"> dimipapaioan@outlook.com</a> </p>
 <p>GitHub:
-<a href = "https://github.com/dimipapaioan/ufocus"> dimipapaioan </a> </p>
+<a href="https://github.com/dimipapaioan/ufocus"> dimipapaioan</a> </p>
 """
+
 
 logger = logging.getLogger(__name__)
 
@@ -481,12 +521,37 @@ class MainWindow(QMainWindow):
         submenuHistograms.addAction(self.histograms.dock_widget3.toggleViewAction())
 
         menuAbout = menu.addMenu("About")
-        menuAbout.addAction('About', self.about)
-        menuAbout.addAction('About Qt', QApplication.aboutQt)
+        menuAbout.addAction("About", self.about)
+        menuAbout.addAction("Check for updates", self.onCheckForUpdates)
+        menuAbout.addAction("About Qt", QApplication.aboutQt)
 
     @Slot()
-    def about(self):
+    def about(self) -> None:
         QMessageBox.about(self, "About μFocus", ABOUT)
+    
+    @Slot()
+    def onCheckForUpdates(self) -> None:
+        latest_version, released_on = get_latest_version()
+        
+        if latest_version is None:
+            QMessageBox.critical(
+                self,
+                "Error checking for updates",
+                "<p><b><font size='+1'>Could not check for updates.</font size='+1'></b></p>"
+                "</p>An HTTPS or URL error occured while checking for updates.</p>"
+                "<p>Alternatively, check for the <a href='https://github.com/dimipapaioan/ufocus/releases/latest'> latest release</a> of μFocus on GitHub.</p>",
+            )
+        elif __version__ < latest_version:
+            released_on = dt.datetime.fromisoformat(released_on).date().isoformat()
+            QMessageBox.information(
+                self,
+                "Update available",
+                "<p><b><font size='+1'>A newer version of μFocus is available.</font size='+1'></b></p>"
+                f"</p>μFocus v{__version__} is installed but v{latest_version} is available (released on {released_on}).</p>"
+                "<p>Download the <a href='https://github.com/dimipapaioan/ufocus/releases/latest'> latest release</a> from GitHub.</p>",
+            )
+        else:
+            QMessageBox.information(self, "Up to date", "You are running the latest version of μFocus.")
     
     @Slot()
     def zoom_in(self):
@@ -508,17 +573,18 @@ class MainWindow(QMainWindow):
         self.actionZoomOut.setEnabled(self.video_label.transform().m11() > 1.0)
         self.actionZoomRestore.setEnabled(self.video_label.transform().m11() != 1.0)
     
-    def calibrationDialogAction(self, s):
-        if self.cal is not None:
-            self.windowCalibration.stackedWidget.setCurrentWidget(self.windowCalibration.calibrationInfo)
-        else:
-            print("Camera calibration started")
-            self.windowCalibration = CameraCalibrationDialog()
-            self.windowCalibration.calibrationFinished.connect(
-                lambda cal: print(cal)
-            )
-            self.windowCalibration.calibrationFinished.connect(self.calib)
-        self.windowCalibration.show()
+    def calibrationDialogAction(self, s) -> None:
+        # if self.cal is not None:
+        #     self.windowCalibration.stackedWidget.setCurrentWidget(self.windowCalibration.calibrationInfo)
+        # else:
+        #     print("Camera calibration started")
+        #     self.windowCalibration = CameraCalibrationDialog()
+        #     self.windowCalibration.calibrationFinished.connect(
+        #         lambda cal: print(cal)
+        #     )
+        #     self.windowCalibration.calibrationFinished.connect(self.calib)
+        # self.windowCalibration.show()
+        pass
     
     @Slot(list)
     def calib(self, c):
@@ -527,7 +593,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def setFullScreen(self, pressed):
         if pressed:
-            self.win = FullScreenWindow(self)
+            self.win = FullScreenWidget(self)
             pixmaps = (
                 QPixmap(":/icons/compress-solid.svg"),
                 QPixmap(":/icons/magnifying-glass-plus-solid.svg"),
@@ -1204,7 +1270,7 @@ class MainWindow(QMainWindow):
             # print(self.pscontroller.ps2.set_power_status("OFF"))
             self.statusPS1.setText("PS1: OFF")
             # print(self.pscontroller.ps1.set_power_status("OFF"))
-            self.statusPS2.setText("PS1: OFF")
+            self.statusPS2.setText("PS2: OFF")
             self.comboboxSerial.setEnabled(True)
             self.connectionButtonSerial.setText("Connect")
             if all(self.pscontroller.successfull.values()):
@@ -1310,6 +1376,7 @@ class MainWindow(QMainWindow):
         )
 
         if result == QMessageBox.StandardButton.Yes:
+            logging.root.removeHandler(self.logging.handler)
             if self.connectionButtonSerial.isChecked():
                 # self.connectionButtonSerial.setChecked(False)
                 if self.pscontroller.queue_thread.is_alive():
@@ -1318,6 +1385,7 @@ class MainWindow(QMainWindow):
                     self.pscontroller.queue_thread.join(timeout=0.5)
             if self.camera is not None:
                 if self.camera.is_connected:
+                    self.worker.manually_terminated = True
                     logger.warning("Camera is still connected")
                     self.camera.disconnect()
                     logger.info("Camera disconnected")
@@ -1336,6 +1404,19 @@ def main() -> int:
     app.setWheelScrollLines(1)
     app.setStyleSheet(CUSTOM_STYLESHEET)
 
+    if app.styleHints().colorScheme() is Qt.ColorScheme.Dark:
+        setConfigOptions(
+            antialias=True,
+            background='#343434', 
+            foreground='whitesmoke',
+        )
+    else:
+        setConfigOptions(
+            antialias=True,
+            background='w', 
+            foreground='k',
+        )
+
     logger.info("μFocus application started")
 
     widget = MainWindow()
@@ -1348,4 +1429,3 @@ def main() -> int:
     logger.info("μFocus application terminated")
     
     return exit_code
-    

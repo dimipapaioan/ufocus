@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from dataclasses import dataclass, field
 from datetime import date
-import logging
-from math import pi, sqrt, nan
+from math import nan, pi, sqrt
 
 import cv2
-from numpy import ndarray, zeros, save
-from PySide6.QtCore import (
-    QObject, Signal, Slot, QEventLoop, QRunnable
-)
-
+from numpy import ndarray, save, zeros
+from PySide6.QtCore import QEventLoop, QObject, QRunnable, Signal, Slot
 
 from dirs import BASE_DATA_PATH
 from settings_manager import SettingsManager
@@ -21,7 +18,7 @@ DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
 logger = logging.getLogger(__name__)
 
 
-class ROIBoundsException(Exception):
+class ROIBoundsError(Exception):
     pass
 
 
@@ -37,7 +34,7 @@ class DetectedEllipse:
     circularity: float = field(init=False)
     eccentricity: float = field(init=False)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.area = self.calculate_area(self.major, self.minor)
         self.perimeter = self.calculate_perimeter(self.major, self.minor)
         self.circularity = self.calculate_circularity(self.area, self.perimeter)
@@ -117,7 +114,7 @@ class ImageProcessing(QRunnable):
 
                 try:
                     x1, y1, x2, y2 = self.sanitize(x_i, y_i, x_f, y_f)
-                except ROIBoundsException:
+                except ROIBoundsError:
                     logger.error("The specified ROI is too small")
                     self.parent.improc_button.toggle()
                     self.parent.imageProcessingROIErrorDialog()
@@ -154,12 +151,12 @@ class ImageProcessing(QRunnable):
                 logger.info(f"Accumulated {self.accumulatedImages} images")
 
                 # X profile
-                self.profile_vertical = cv2.reduce(self.accumulator, 0, cv2.REDUCE_SUM, dtype=cv2.CV_64F)
+                self.profile_vertical = cv2.reduce(self.accumulator, 0, cv2.REDUCE_SUM, None, dtype=cv2.CV_64F)
                 vert = cv2.normalize(self.profile_vertical, None, 1.0, 0, cv2.NORM_INF)
                 self.signals.imageProcessingVert.emit(vert.reshape(vert.shape[1]))
 
                 # Y profile
-                self.profile_horizontal = cv2.reduce(self.accumulator, 1, cv2.REDUCE_SUM, dtype=cv2.CV_64F)
+                self.profile_horizontal = cv2.reduce(self.accumulator, 1, cv2.REDUCE_SUM, None, dtype=cv2.CV_64F)
                 hor = cv2.normalize(self.profile_horizontal, None, 1.0, 0, cv2.NORM_INF)
                 self.signals.imageProcessingHor.emit(hor.reshape(hor.shape[0]))
 
@@ -248,7 +245,7 @@ class ImageProcessing(QRunnable):
 
     def sanitize(self, xi, yi, xf, yf):
         if xi == xf or yi == yf:
-            raise ROIBoundsException()
+            raise ROIBoundsError()
         
         xmin = min(xi, xf)
         ymin = min(yi, yf)

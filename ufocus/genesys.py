@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from collections import deque
 import logging
 import time
+from collections import deque
 
 from serial import Serial
 

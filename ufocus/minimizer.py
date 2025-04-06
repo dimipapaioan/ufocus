@@ -2,22 +2,21 @@
 
 import logging
 from dataclasses import dataclass
-from math import nan, inf, isnan
+from math import inf, isnan, nan
 
 from PySide6.QtCore import (
+    QMutex,
     QObject,
-    Signal,
-    Slot,
     QRunnable,
     QWaitCondition,
-    QMutex,
+    Signal,
+    Slot,
 )
-from scipy.optimize import minimize, OptimizeResult
+from scipy.optimize import OptimizeResult, minimize
 
 from image_processing import DetectedEllipse
 from ps_controller import PSController
 from settings_manager import SettingsManager
-
 
 logger = logging.getLogger(__name__)
 

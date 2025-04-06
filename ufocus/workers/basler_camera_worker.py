@@ -45,7 +45,8 @@ class BaslerCameraWorker(CameraWorker):
             self.camera.DeregisterConfiguration(self.printer)
         finally:
             logger.info("Camera worker finished")
-            self.signals.finished.emit()
+            if not self.manually_terminated:
+                self.signals.finished.emit()
 
 
 class CameraImageHandler(pylon.ImageEventHandler, QObject):

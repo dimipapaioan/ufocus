@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Create a camera worker class
 class BuiltInCameraWorker(CameraWorker):
-    def __init__(self, camera, parent=None):
+    def __init__(self, camera, parent=None) -> None:
         super().__init__(parent)
         self.camera: cv2.VideoCapture = camera
 
@@ -55,4 +55,5 @@ class BuiltInCameraWorker(CameraWorker):
                             frames = 0
         finally:
             logger.info("Camera worker finished")
-            self.signals.finished.emit()
+            if not self.manually_terminated:
+                self.signals.finished.emit()

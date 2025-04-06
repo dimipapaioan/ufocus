@@ -1376,6 +1376,7 @@ class MainWindow(QMainWindow):
         )
 
         if result == QMessageBox.StandardButton.Yes:
+            logging.root.removeHandler(self.logging.handler)
             if self.connectionButtonSerial.isChecked():
                 # self.connectionButtonSerial.setChecked(False)
                 if self.pscontroller.queue_thread.is_alive():
@@ -1384,6 +1385,7 @@ class MainWindow(QMainWindow):
                     self.pscontroller.queue_thread.join(timeout=0.5)
             if self.camera is not None:
                 if self.camera.is_connected:
+                    self.worker.manually_terminated = True
                     logger.warning("Camera is still connected")
                     self.camera.disconnect()
                     logger.info("Camera disconnected")

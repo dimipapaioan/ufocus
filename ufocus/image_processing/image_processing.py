@@ -115,15 +115,28 @@ class ImageProcessing(QRunnable):
 class RunManager:
     """Manages run numbering for data organization."""
 
-    @staticmethod
-    def determine_run(data_path: Path) -> int:
+    _run_cache = {}
+
+    @classmethod
+    def determine_run(cls, data_path: Path) -> int:
         """Determine the next run number based on existing directories."""
+        # Check cache first
+        if data_path in cls._run_cache:
+            return cls._run_cache[data_path]
+
+        # Find all run directories
         runs = sorted(data_path.glob("run_*/"))
+
         if runs:
+            # Extract the run number from the last directory
             n = int(runs[-1].name.strip("run_"))
-            return n + 1
+            result = n + 1
         else:
-            return 0
+            result = 0
+
+        # Cache the result
+        cls._run_cache[data_path] = result
+        return result
 
 
 # fmt: off

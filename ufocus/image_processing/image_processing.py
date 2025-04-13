@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 from math import nan, pi, sqrt
+from pathlib import Path
 
 import cv2
 from numpy import ndarray, save, zeros
@@ -106,9 +107,23 @@ class ImageProcessing(QRunnable):
         self.pipeline.threshold = n
 
     @Slot(bool)
-    def setInAccumulation(self, value):
+    def setInAccumulation(self, value: bool) -> None:
         """Set whether to accumulate images."""
         self.pipeline.inAccumulation = value
+
+
+class RunManager:
+    """Manages run numbering for data organization."""
+
+    @staticmethod
+    def determine_run(data_path: Path) -> int:
+        """Determine the next run number based on existing directories."""
+        runs = sorted(data_path.glob("run_*/"))
+        if runs:
+            n = int(runs[-1].name.strip("run_"))
+            return n + 1
+        else:
+            return 0
 
 
 # fmt: off
@@ -119,7 +134,7 @@ class ImageProcessingPipeline:
         self.accumulatedImages: int = 0
         self.skippedImages: int = 0
         self.numberOfImage: int = 0
-        self.numberOfRuns: int = self.determine_run()
+        self.numberOfRuns: int = RunManager.determine_run(DATA_PATH)
         self.image_data_path = DATA_PATH / f'run_{self.numberOfRuns:02}' / 'images'
         self.inAccumulation: bool = True
         self.accumulator = zeros((self.parent.camera.height, self.parent.camera.width))
@@ -290,11 +305,3 @@ class ImageProcessingPipeline:
         ymax = max(yi, yf)
 
         return (xmin, ymin, xmax, ymax)
-
-    def determine_run(self):
-        runs = sorted(DATA_PATH.glob('run_*/'))
-        if runs:
-            n = int(runs[-1].name.strip('run_'))
-            return n + 1
-        else:
-            return 0

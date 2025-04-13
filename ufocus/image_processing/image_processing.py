@@ -122,6 +122,7 @@ class RunManager:
         """Determine the next run number based on existing directories."""
         # Check cache first
         if data_path in cls._run_cache:
+            cls._run_cache[data_path] += 1
             return cls._run_cache[data_path]
 
         # Find all run directories

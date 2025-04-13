@@ -10,16 +10,13 @@ from numpy import ndarray, save, zeros
 from PySide6.QtCore import QEventLoop, QObject, QRunnable, Signal, Slot
 
 from dirs import BASE_DATA_PATH
+from image_processing.exceptions import ROIBoundsError
 from settings_manager import SettingsManager
 
 # Generate the appropriate paths for saving data
 DATA_PATH = BASE_DATA_PATH / date.today().isoformat()
 
 logger = logging.getLogger(__name__)
-
-
-class ROIBoundsError(Exception):
-    pass
 
 
 @dataclass

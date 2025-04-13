@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 
 import resources  # noqa: F401
 from image_processing.image_processing import DetectedEllipse
-from minimizer import ObjectiveFunctionInfo, PSCurrentsInfo
+from minimizer.minimizer import ObjectiveFunctionInfo, PSCurrentsInfo
 from widgets.floating_widget import FloatingWidget
 
 

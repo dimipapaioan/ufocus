@@ -59,7 +59,7 @@ from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
 from image_processing.image_processing import ImageProcessing
-from minimizer import Minimizer
+from minimizer.minimizer import Minimizer
 from ps_controller import PSController
 from settings_manager import SettingsManager
 from version import get_latest_version, get_version

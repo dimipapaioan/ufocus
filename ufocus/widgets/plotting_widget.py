@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 
 import resources  # noqa: F401
 from dirs import BASE_DATA_PATH
-from image_processing import DetectedEllipse
+from image_processing.image_processing import DetectedEllipse
 from widgets.floating_widget import FloatingWidget
 
 

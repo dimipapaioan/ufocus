@@ -14,7 +14,7 @@ from PySide6.QtCore import (
 )
 from scipy.optimize import OptimizeResult, minimize
 
-from image_processing import DetectedEllipse
+from image_processing.image_processing import DetectedEllipse
 from ps_controller import PSController
 from settings_manager import SettingsManager
 

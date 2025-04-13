@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DetectedEllipse:
+    """Data class representing a detected ellipse with its properties."""
+
     x_c: float = nan
     y_c: float = nan
     minor: float = nan
@@ -41,9 +43,10 @@ class DetectedEllipse:
         return 0.25 * pi * major * minor
 
     def calculate_perimeter(self, major: float, minor: float) -> float:
-        return 0.5 * pi * (
-            3 * (major + minor)
-            - sqrt((3 * major + minor) * (major + 3 * minor))
+        return (
+            0.5
+            * pi
+            * (3 * (major + minor) - sqrt((3 * major + minor) * (major + 3 * minor)))
         )
 
     def calculate_circularity(self, area: float, perimeter: float) -> float:
@@ -54,17 +57,63 @@ class DetectedEllipse:
 
 
 class ImageProcessingSignals(QObject):
+    """Signals for communicating image processing results."""
+
     imageProcessingDone = Signal(ndarray)
     imageProcessingHist = Signal(ndarray)
     imageProcessingVert = Signal(ndarray)
     imageProcessingHor = Signal(ndarray)
     imageProcessingEllipse = Signal(DetectedEllipse)
-    # imageProcessingFinished = Signal()
 
 
 class ImageProcessing(QRunnable):
-    def __init__(self, parent=None):
+    """Main image processing runnable that interfaces with the UI."""
+
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
+        self.parent = parent
+        self.pipeline = ImageProcessingPipeline(parent)
+        self.signals = self.pipeline.signals
+
+    @Slot()
+    def run(self) -> None:
+        """Run the image processing thread."""
+        logger.info("Image processing started")
+        self.eventloop = QEventLoop()
+        self.eventloop.exec()
+        logger.info("Image processing terminated")
+
+    @Slot(ndarray)
+    def imageProcessing(self, image: ndarray) -> None:
+        """Process an incoming image."""
+        self.pipeline.imageProcessing(image)
+
+    @Slot(int)
+    def setNumberOfImagesToAccumulate(self, n: int) -> None:
+        """Set the number of images to accumulate."""
+        self.pipeline.numberOfImagesToAccumulate = n
+
+    @Slot(int)
+    def setGaussianKernel(self, k: int) -> None:
+        """Set the Gaussian kernel size."""
+        if k % 2 != 0:
+            logger.info(f"Gaussian kernel set to ({k}, {k})")
+            self.pipeline.kernelGaussianFiltering = (k, k)
+
+    @Slot(int)
+    def setThreshold(self, n: int) -> None:
+        """Set the threshold value."""
+        self.pipeline.threshold = n
+
+    @Slot(bool)
+    def setInAccumulation(self, value):
+        """Set whether to accumulate images."""
+        self.pipeline.inAccumulation = value
+
+
+# fmt: off
+class ImageProcessingPipeline:
+    def __init__(self, parent=None) -> None:
         self.parent = parent
         self.signals = ImageProcessingSignals()
         self.accumulatedImages: int = 0
@@ -83,17 +132,7 @@ class ImageProcessing(QRunnable):
         self.save_images = self.parent.checkboxSaveImages.isChecked()
         self.settings_manager = SettingsManager()
         self.settings_manager.saveUserSettings()
-    
-    @Slot()
-    def run(self):
-        logger.info("Image processing started")
-        self.eventloop = QEventLoop()
-        self.eventloop.exec()
-        
-        logger.info("Image processing terminated")
-        # self.signals.imageProcessingFinished.emit()
 
-    @Slot(ndarray)
     def imageProcessing(self, image: ndarray) -> None:
         if self.inAccumulation:
             if self.skippedImages != 0:
@@ -259,21 +298,3 @@ class ImageProcessing(QRunnable):
             return n + 1
         else:
             return 0
-    
-    @Slot(int)
-    def setNumberOfImagesToAccumulate(self, n):
-        self.numberOfImagesToAccumulate = n
-    
-    @Slot(int)
-    def setGaussianKernel(self, k):
-        if k % 2 != 0:
-            logger.info(f"Gaussian kernel set to ({k}, {k})")
-            self.kernelGaussianFiltering = (k, k)
-
-    @Slot(int)
-    def setThreshold(self, n):
-        self.threshold = n
-
-    @Slot(bool)
-    def setInAccumulation(self, value):
-        self.inAccumulation = value

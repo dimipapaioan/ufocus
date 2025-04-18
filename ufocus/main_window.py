@@ -1385,7 +1385,8 @@ class MainWindow(QMainWindow):
                     self.pscontroller.queue_thread.join(timeout=0.5)
             if self.camera is not None:
                 if self.camera.is_connected:
-                    self.worker.manually_terminated = True
+                    if hasattr(self, "worker"):
+                        self.worker.manually_terminated = True
                     logger.warning("Camera is still connected")
                     self.camera.disconnect()
                     logger.info("Camera disconnected")

@@ -58,7 +58,7 @@ from cameras.camera_base import Camera
 from cameras.exceptions import CameraConnectionError
 from dirs import BASE_PATH
 from event_filter import EventFilter
-from image_processing.image_processing import ImageProcessing
+from image_processing.image_processing import DetectedEllipse, ImageProcessing
 from minimizer.minimizer import Minimizer
 from ps_controller import PSController
 from settings_manager import SettingsManager
@@ -152,7 +152,6 @@ logger = logging.getLogger(__name__)
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.ports = self.list_ports()
@@ -528,7 +527,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def about(self) -> None:
         QMessageBox.about(self, "About μFocus", ABOUT)
-    
+
     @Slot()
     def onCheckForUpdates(self) -> None:
         latest_version, released_on = get_latest_version()
@@ -552,7 +551,7 @@ class MainWindow(QMainWindow):
             )
         else:
             QMessageBox.information(self, "Up to date", "You are running the latest version of μFocus.")
-    
+
     @Slot()
     def zoom_in(self):
         self.video_label.scale(self.video_label.scale_factor, self.video_label.scale_factor)
@@ -572,7 +571,7 @@ class MainWindow(QMainWindow):
         self.actionZoomIn.setEnabled(self.video_label.transform().m11() < 30)
         self.actionZoomOut.setEnabled(self.video_label.transform().m11() > 1.0)
         self.actionZoomRestore.setEnabled(self.video_label.transform().m11() != 1.0)
-    
+
     def calibrationDialogAction(self, s) -> None:
         # if self.cal is not None:
         #     self.windowCalibration.stackedWidget.setCurrentWidget(self.windowCalibration.calibrationInfo)
@@ -585,7 +584,7 @@ class MainWindow(QMainWindow):
         #     self.windowCalibration.calibrationFinished.connect(self.calib)
         # self.windowCalibration.show()
         pass
-    
+
     @Slot(list)
     def calib(self, c):
         self.cal = c
@@ -675,7 +674,7 @@ class MainWindow(QMainWindow):
 
         self.comboboxCamera.currentIndexChanged.connect(self.selectionCameraChanged)
         self.connectionButtonCamera.toggled.connect(self.onCameraChecked)
-    
+
     def setupCameraOptions(self):
         # Setup relevant widgets
         labelExposureTime = QLabel("Exposure Time [μs]")
@@ -749,7 +748,7 @@ class MainWindow(QMainWindow):
 
         self.actionResetCamera = QAction("Reset camera settings", self)
         self.actionResetCamera.setEnabled(False)
-    
+
     @Slot()
     def setCameraExposureTime(self, value):
         try:
@@ -888,7 +887,7 @@ class MainWindow(QMainWindow):
         self.minimizationButton.toggled.connect(self.onMinimizeStateChanged)
         self.spinboxInitialPS1.valueChanged.connect(self.setBounds)
         self.spinboxInitialPS2.valueChanged.connect(self.setBounds)
-    
+
     @Slot(float)
     def setBounds(self, val: float) -> None:
         min, max = self.determineBounds(val)
@@ -1003,7 +1002,7 @@ class MainWindow(QMainWindow):
             self.cameraErrorDialog()
         else:
             self.actionSaveImageAs.setEnabled(True)
-    
+
     @Slot()
     def saveImage(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Save Image", str(BASE_PATH / 'Image.png'), "Image Files (*.png);;All Files (*)")
@@ -1102,7 +1101,7 @@ class MainWindow(QMainWindow):
             "<p>The camera needs to be opened first in order for image processing to start.</p>",
             QMessageBox.StandardButton.Ok
         )
-    
+
     def imageProcessingROIErrorDialog(self):
         QMessageBox.critical(
             self,
@@ -1166,7 +1165,7 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'minimizerWorker'):
                 self.minimizerWorker.control = True
             self.minimizationButton.setText("Start Minimization")
-    
+
     @Slot()
     def minimizerFinished(self):
         if self.minimizerWorker.solution is not None:
@@ -1205,7 +1204,7 @@ class MainWindow(QMainWindow):
             "<p>An upper bound is less than the corresponding lower bound.</p>",
             QMessageBox.StandardButton.Ok
         )
-    
+
     @Slot()
     def minimizerStartErrorDialog(self):
         QMessageBox.critical(
@@ -1286,7 +1285,7 @@ class MainWindow(QMainWindow):
         self.psLCD1.currentLCD.display(data['MC1'])
         self.psLCD2.voltageLCD.display(data['MV2'])
         self.psLCD2.currentLCD.display(data['MC2'])
-    
+
     @Slot(bool)
     def onSerialConnectionSuccess(self, success):
         if success:
@@ -1296,7 +1295,7 @@ class MainWindow(QMainWindow):
             self.statusPS2.setText("PS1: ON")
         else:
             self.serialConnectionFailedDialog()
-    
+
     def serialConnectionFailedDialog(self):
         QMessageBox.critical(
             self,
@@ -1346,7 +1345,7 @@ class MainWindow(QMainWindow):
                 self.connectionButtonCamera.setText("Connect")
                 self.actionResetCamera.setEnabled(False)
                 self.camera = None
-    
+
     def updateCameraParameters(self):
         self.sliderExposureTime.setRange(
             self.camera.camera.ExposureTime.Min,
@@ -1367,67 +1366,129 @@ class MainWindow(QMainWindow):
         )
         self.spinboxContrast.setValue(self.camera.camera.BslContrast.GetValue())
 
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         result = QMessageBox.question(
             self,
             "Confirm Exit",
             "Are you sure you want to quit?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
 
         if result == QMessageBox.StandardButton.Yes:
+            logger.info("Application shutdown initiated")
+
+            # Clean up logging
             logging.root.removeHandler(self.logging.handler)
-            if self.connectionButtonSerial.isChecked():
-                # self.connectionButtonSerial.setChecked(False)
-                if self.pscontroller.queue_thread.is_alive():
-                    self.pscontroller.control = False
-                    self.pscontroller.loop.exit()
-                    self.pscontroller.queue_thread.join(timeout=0.5)
-            if self.camera is not None:
-                if self.camera.is_connected:
-                    if hasattr(self, "worker"):
-                        self.worker.manually_terminated = True
-                    logger.warning("Camera is still connected")
-                    self.camera.disconnect()
-                    logger.info("Camera disconnected")
-            if hasattr(self, 'imageProcessingWorker'):
-                if self.imageProcessingWorker.eventloop.isRunning():
-                    logger.warning("Image processing is still running")
+
+            # Clean up minimizer
+            if hasattr(self, "minimizerWorker"):
+                logger.info("Shutting down minimizer")
+                self.minimizerWorker.control = True  # Signal to stop
+                self.minimizerWorker.forced_termination = True
+
+                # Disconnect signals
+                try:
+                    self.imageProcessingWorker.signals.imageProcessingEllipse.disconnect(self.minimizerWorker.get_res)
+                    self.minimizerWorker.signals.finished.disconnect(self.minimizerFinished)
+                except (TypeError, RuntimeError):
+                    # Already disconnected or invalid
+                    pass
+                self.minimizerWorker.get_res(DetectedEllipse())  # Wakes up the thread
+
+            # Clean up image processing
+            if hasattr(self, "imageProcessingWorker"):
+                logger.info("Shutting down image processing")
+                if hasattr(self.imageProcessingWorker, "eventloop") and self.imageProcessingWorker.eventloop.isRunning():
+                    logger.debug("Stopping image processing event loop")
                     self.imageProcessingWorker.eventloop.exit()
 
+                    # Disconnect signals to prevent callbacks during shutdown
+                    if hasattr(self, "worker") and hasattr(self.worker, "signals"):
+                        try:
+                            self.worker.signals.progress.disconnect(self.imageProcessingWorker.imageProcessing)
+                        except (TypeError, RuntimeError):
+                            # Already disconnected or invalid
+                            pass
+
+            # Clean up serial connection and power supply controller
+            if self.connectionButtonSerial.isChecked():
+                logger.info("Shutting down power supply controller")
+                if hasattr(self, "pscontroller"):
+                    # Signal the controller to stop
+                    self.pscontroller.control = False
+
+                    # Exit the event loop
+                    if hasattr(self.pscontroller, "loop") and self.pscontroller.loop.isRunning():
+                        self.pscontroller.loop.exit()
+
+                    # Wait for queue thread to finish with timeout
+                    if hasattr(self.pscontroller, "queue_thread") and self.pscontroller.queue_thread.is_alive():
+                        logger.debug("Waiting for queue thread to terminate")
+                        self.pscontroller.queue_thread.join(timeout=0.5)
+
+            # Clean up camera resources
+            if self.camera is not None:
+                logger.info("Shutting down camera")
+                if self.camera.is_connected:
+                    # Mark worker as manually terminated to prevent error messages
+                    if hasattr(self, "worker"):
+                        self.worker.manually_terminated = True
+
+                    # Stop any ongoing capture
+                    if self.close_button.isEnabled():
+                        self.stop_capture()
+
+                    # Disconnect the camera
+                    logger.debug("Disconnecting camera")
+                    self.camera.disconnect()
+                    logger.info("Camera disconnected")
+
+            # Wait for all threadpool tasks to finish (with a reasonable timeout)
+            if hasattr(self, "threadpool"):
+                logger.info("Waiting for thread pool to finish")
+                self.threadpool.waitForDone(1000)  # 1 second timeout
+
+                # If threads are still running, log a warning
+                if not self.threadpool.waitForDone(0):
+                    logger.warning("Some threads did not terminate properly")
+
+            logger.info("Application shutdown completed")
             event.accept()
         else:
             event.ignore()
 
+
 def main() -> int:
     app = QApplication([])
-    app.setStyle('Fusion')
+    app.setStyle("Fusion")
     app.setWheelScrollLines(1)
     app.setStyleSheet(CUSTOM_STYLESHEET)
 
     if app.styleHints().colorScheme() is Qt.ColorScheme.Dark:
         setConfigOptions(
             antialias=True,
-            background='#343434', 
-            foreground='whitesmoke',
+            background="#343434",
+            foreground="whitesmoke",
         )
     else:
         setConfigOptions(
             antialias=True,
-            background='w', 
-            foreground='k',
+            background="w",
+            foreground="k",
         )
 
     logger.info("μFocus application started")
 
     widget = MainWindow()
-    
+
     available_geometry = widget.screen().availableGeometry()
-    widget.resize(int(0.66 * available_geometry.width()), int(0.85 * available_geometry.height()))
+    widget.resize(
+        int(0.66 * available_geometry.width()), int(0.85 * available_geometry.height())
+    )
     widget.show()
 
     exit_code = app.exec()
     logger.info("μFocus application terminated")
-    
+
     return exit_code

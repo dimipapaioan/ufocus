@@ -77,6 +77,7 @@ class Minimizer(QRunnable):
         self.signals = MinimizerSignals()
         self.obj_func_stats = ObjectiveFunctionInfo()
         self.ps_currents_stats = PSCurrentsInfo()
+        self.forced_termination = False
         self.numerator_pow = 1
         self.denominator_pow = 2
 
@@ -131,11 +132,13 @@ class Minimizer(QRunnable):
             self.signals.boundsError.emit()
         else:
             logger.info(f"Solution: {self.solution.x}")
-            self.signals.setCurrent.emit(self.solution.x)
+            if not self.forced_termination:
+                self.signals.setCurrent.emit(self.solution.x)
         finally:
-            self.pscontroller.refreshGUI()
-            self.pscontroller.updateDialValue(self.pscontroller.ps1, self.parent.psLCD1)
-            self.pscontroller.updateDialValue(self.pscontroller.ps2, self.parent.psLCD2)
+            if not self.forced_termination:
+                self.pscontroller.refreshGUI()
+                self.pscontroller.updateDialValue(self.pscontroller.ps1, self.parent.psLCD1)
+                self.pscontroller.updateDialValue(self.pscontroller.ps2, self.parent.psLCD2)
             logger.info("Minimization process finished")
             self.signals.controlTimer.emit(False)
             self.signals.finished.emit()

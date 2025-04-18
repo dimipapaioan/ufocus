@@ -16,6 +16,8 @@ class PSControllerSignals(QObject):
     updateValues = Signal(dict)
     serialConnectionSuccessful = Signal(bool)
     controlTimer = Signal(bool)
+    startRefreshTimer = Signal()
+    endRefreshTimer = Signal()
     terminate = Signal()
 
 class PSController(QRunnable):
@@ -72,7 +74,8 @@ class PSController(QRunnable):
             self.refreshTimer = QTimer()
             self.refreshTimer.setInterval(1000)
             self.refreshTimer.timeout.connect(self.refreshGUI)
-            self.signals.controlTimer.connect(self.controlTimer)
+            self.signals.startRefreshTimer.connect(self.refreshTimer.start)
+            self.signals.endRefreshTimer.connect(self.refreshTimer.stop)
 
             # Start the thread that manages the queue and update the GUI
             self.queue_thread = Thread(target=self.commandWorker, daemon=True)
@@ -158,11 +161,12 @@ class PSController(QRunnable):
         # self.queue.join()
 
     @Slot(bool)
-    def controlTimer(self, b):
+    def controlTimer(self, b) -> None:
+        """Control the refresh timer."""
         if b:
-            self.refreshTimer.stop()
+            self.signals.endRefreshTimer.emit()
         else:
-            self.refreshTimer.start()
+            self.signals.startRefreshTimer.emit()
 
     def updateDialValue(self, ps, widget):
         if (val := float(ps.get_programmed_current())) != widget.currentDial.value() / 100:

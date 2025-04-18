@@ -51,6 +51,7 @@ class MinimizerSignals(QObject):
     setCurrent = Signal(list)
     updateFunction = Signal(float)
     inAccumulation = Signal(bool)
+    controlTimer = Signal(bool)
     updateStats = Signal(PSCurrentsInfo, ObjectiveFunctionInfo)
     finished = Signal()
 
@@ -84,7 +85,7 @@ class Minimizer(QRunnable):
 
     def run(self) -> None:
         logger.info("Minimizer started")
-        self.pscontroller.signals.controlTimer.emit(True)
+        self.signals.controlTimer.emit(True)
         self.signals.inAccumulation.emit(False)
         self.signals.setCurrent.connect(self.setPSCurrents)
 
@@ -136,7 +137,7 @@ class Minimizer(QRunnable):
             self.pscontroller.updateDialValue(self.pscontroller.ps1, self.parent.psLCD1)
             self.pscontroller.updateDialValue(self.pscontroller.ps2, self.parent.psLCD2)
             logger.info("Minimization process finished")
-            self.pscontroller.signals.controlTimer.emit(False)
+            self.signals.controlTimer.emit(False)
             self.signals.finished.emit()
 
     def callback(self, intermediate_result: OptimizeResult) -> None:

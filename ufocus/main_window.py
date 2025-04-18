@@ -1123,6 +1123,7 @@ class MainWindow(QMainWindow):
         self.minimizerWorker.signals.updateCurrent.connect(self.plotting.updatePlotCurrents)
         self.minimizerWorker.signals.updateFunction.connect(self.plotting.updatePlotFunction)
         self.minimizerWorker.signals.updateStats.connect(self.imageProcessingFeed.onMinimizerFuncEvalUpdate)
+        self.minimizerWorker.signals.controlTimer.connect(self.pscontroller.controlTimer)
         self.minimizerWorker.signals.finished.connect(
             lambda: self.improc_button.setChecked(False)
         )
@@ -1245,8 +1246,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def onSerialChecked(self, checked):
         if checked:
-            self.serial_port = self.connect_port(self.ports[self.comboboxSerial.currentIndex()].name)
-            self.pscontroller = PSController(self.serial_port, self)
+            selected_port = self.ports[self.comboboxSerial.currentIndex()]
+            self.serial_port = self.connect_port(selected_port.name)
             self.pscontroller.signals.updateValues.connect(self.updateGUI)
             self.comboboxSerial.setEnabled(False)
             self.connectionButtonSerial.setText("Disconnect")

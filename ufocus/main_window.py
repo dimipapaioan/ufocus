@@ -1247,6 +1247,7 @@ class MainWindow(QMainWindow):
         if checked:
             selected_port = self.ports[self.comboboxSerial.currentIndex()]
             self.serial_port = self.connect_port(selected_port.name)
+            self.pscontroller = PSController(self.serial_port, self)
             self.pscontroller.signals.updateValues.connect(self.updateGUI)
             self.comboboxSerial.setEnabled(False)
             self.connectionButtonSerial.setText("Disconnect")

@@ -14,7 +14,7 @@ from PySide6.QtCore import (
 )
 from scipy.optimize import OptimizeResult, minimize
 
-from image_processing import DetectedEllipse
+from image_processing.image_processing import DetectedEllipse
 from ps_controller import PSController
 from settings_manager import SettingsManager
 
@@ -48,9 +48,9 @@ class ObjectiveFunctionInfo:
 class MinimizerSignals(QObject):
     boundsError = Signal()
     updateCurrent = Signal(list)
-    setCurrent = Signal(list)
     updateFunction = Signal(float)
     inAccumulation = Signal(bool)
+    controlTimer = Signal(bool)
     updateStats = Signal(PSCurrentsInfo, ObjectiveFunctionInfo)
     finished = Signal()
 
@@ -76,6 +76,7 @@ class Minimizer(QRunnable):
         self.signals = MinimizerSignals()
         self.obj_func_stats = ObjectiveFunctionInfo()
         self.ps_currents_stats = PSCurrentsInfo()
+        self.forced_termination = False
         self.numerator_pow = 1
         self.denominator_pow = 2
 
@@ -84,9 +85,8 @@ class Minimizer(QRunnable):
 
     def run(self) -> None:
         logger.info("Minimizer started")
-        self.pscontroller.signals.controlTimer.emit(True)
+        self.signals.controlTimer.emit(True)
         self.signals.inAccumulation.emit(False)
-        self.signals.setCurrent.connect(self.setPSCurrents)
 
         initial = [
             self.parent.spinboxInitialPS1.value(),
@@ -130,13 +130,15 @@ class Minimizer(QRunnable):
             self.signals.boundsError.emit()
         else:
             logger.info(f"Solution: {self.solution.x}")
-            self.signals.setCurrent.emit(self.solution.x)
+            if not self.forced_termination:
+                self.signals.setCurrent.emit(self.solution.x)
         finally:
-            self.pscontroller.refreshGUI()
-            self.pscontroller.updateDialValue(self.pscontroller.ps1, self.parent.psLCD1)
-            self.pscontroller.updateDialValue(self.pscontroller.ps2, self.parent.psLCD2)
+            if not self.forced_termination:
+                self.pscontroller.refreshGUI()
+                self.pscontroller.updateDialValue(self.pscontroller.ps1, self.parent.psLCD1)
+                self.pscontroller.updateDialValue(self.pscontroller.ps2, self.parent.psLCD2)
             logger.info("Minimization process finished")
-            self.pscontroller.signals.controlTimer.emit(False)
+            self.signals.controlTimer.emit(False)
             self.signals.finished.emit()
 
     def callback(self, intermediate_result: OptimizeResult) -> None:
@@ -161,11 +163,10 @@ class Minimizer(QRunnable):
             # These values are to be sent to the power supplies
             self.signals.updateCurrent.emit(x)
 
-            # self.pscontroller.setPS1Current(x[0] * 100)
-            # self.pscontroller.setPS2Current(x[1] * 100)
-            self.signals.setCurrent.emit(x)
+            # Set currents to the power supplies
+            # Blocks until the function returns
+            self.setPSCurrents(x)
 
-            # Wait a bit for the system to adjust to the new currents or to gather data.
             # time.sleep(0.1)
             # Retrieve the values of what is to be minimized
             self.mutex.lock()
@@ -209,7 +210,6 @@ class Minimizer(QRunnable):
         logger.debug("Set values to minimizer")
         return self.res
 
-    @Slot(list)
     def setPSCurrents(self, x: list[float]) -> None:
         logger.info(f"Setting Q1 current to: {x[0]}")
         self.pscontroller.setPS1Current(x[0] * 100)

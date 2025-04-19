@@ -48,7 +48,6 @@ class ObjectiveFunctionInfo:
 class MinimizerSignals(QObject):
     boundsError = Signal()
     updateCurrent = Signal(list)
-    setCurrent = Signal(list)
     updateFunction = Signal(float)
     inAccumulation = Signal(bool)
     controlTimer = Signal(bool)
@@ -88,7 +87,6 @@ class Minimizer(QRunnable):
         logger.info("Minimizer started")
         self.signals.controlTimer.emit(True)
         self.signals.inAccumulation.emit(False)
-        self.signals.setCurrent.connect(self.setPSCurrents)
 
         initial = [
             self.parent.spinboxInitialPS1.value(),
@@ -165,11 +163,10 @@ class Minimizer(QRunnable):
             # These values are to be sent to the power supplies
             self.signals.updateCurrent.emit(x)
 
-            # self.pscontroller.setPS1Current(x[0] * 100)
-            # self.pscontroller.setPS2Current(x[1] * 100)
-            self.signals.setCurrent.emit(x)
+            # Set currents to the power supplies
+            # Blocks until the function returns
+            self.setPSCurrents(x)
 
-            # Wait a bit for the system to adjust to the new currents or to gather data.
             # time.sleep(0.1)
             # Retrieve the values of what is to be minimized
             self.mutex.lock()
@@ -213,7 +210,6 @@ class Minimizer(QRunnable):
         logger.debug("Set values to minimizer")
         return self.res
 
-    @Slot(list)
     def setPSCurrents(self, x: list[float]) -> None:
         logger.info(f"Setting Q1 current to: {x[0]}")
         self.pscontroller.setPS1Current(x[0] * 100)

@@ -153,12 +153,12 @@ class PSController(QRunnable):
     @Slot(int)
     def setPS1Current(self, value):
         self.queue.put((self.ps1.set_programmed_current, value / 100))
-        # self.queue.join()
+        self.queue.join()
     
     @Slot(int)
     def setPS2Current(self, value):
         self.queue.put((self.ps2.set_programmed_current, value / 100))
-        # self.queue.join()
+        self.queue.join()
 
     @Slot(bool)
     def controlTimer(self, b) -> None:
